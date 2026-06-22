@@ -109,6 +109,7 @@ classDiagram
         -IPlayer _winner
         -IDrawPile _drawPile
         -int _currentPlayerIndex
+        -int _consecutiveSkips
         -GameStatus _gameStatus
         -WinCondition _winCondition
 
@@ -120,37 +121,55 @@ classDiagram
         +GameLogic(List~IPlayer~ players, IDrawPile drawPile)
 
         %% Lifecycle (public)
-        +StartGame() void
+        +StartGame() : void
+        +GetWinner() : IPlayer
+        +GetWinConditions() : WinCondition
 
         %% Actions (public)
-        +PlayTurn(IPlayer player, IDomino domino, PlacementSide side, PlacementOrientation orientation) TurnAction
-        +DrawCard(IPlayer player) void
-        +AdvanceTurn() void
+        +PlayTurn(IPlayer player, IDomino domino, PlacementSide side, PlacementOrientation orientation) : TurnAction
+        +DrawCard(IPlayer player) : void
+        +AdvanceTurn() : void
 
-        %% Get Info Game and Turn (public)
-        +GetCurrentPlayer() IPlayer
-        +GetPlayers() List~IPlayer~
-        +GetStatus() GameStatus
-        +GetBoard() IBoard
-        +GetOpenEndPips() List~int~
-        +GetPlayerHand(IPlayer player) List~IDomino~
+        %% Get Info Game and Turn
+        +GetStatus() : GameStatus
+        +GetCurrentPlayer() : IPlayer
+        
+        %% Get Info Player and Hand
+        +GetPlayers() : List~IPlayer~
+        +GetPlayerHand(IPlayer player) : List~IDomino~
+        +GetRemainingPips(IPlayer player) : int
+        
+        %% Get Info Board
+        +GetBoard() : IBoard
+        +GetOpenEndPips() : List~int~
+        +GetDrawPileCount() : int
 
-        %% Logic Bussiness
-        -ShuffleDrawPile() void
-        -DealInitialHands() void
-        -DetermineStartingPlayer() void
-        -GetHighestDouble(IPlayer player) IDomino
-        -ValidatePlacement(IDomino domino, PlacementSide side) bool
-        -PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation) void
-        -DrawFromPile() IDomino
-        -AddDominoToHand(IPlayer player, IDomino domino) void
-        -RemoveDominoFromHand(IPlayer player, IDomino domino) void
-        -CheckGameOver() bool
-        -DetermineWinner() IPlayer
-        -CalculateRemainingPips(IPlayer player) int
-        -IsGameBlocked() bool
-        -HasPlayableDomino(IPlayer player) bool
-        -EndGame() void
+        %% Bussines Logic Setup (Private)
+        -ShuffleDrawPile() : void
+        -DealInitialHands() : void
+        -DetermineStartingPlayer() : void
+        -GetHighestDouble(IPlayer player) : IDomino
+        -HasAnyDouble() : bool
+        -RedealAllHands() : void
+        
+        %% Bussines Logic Turn and Placement (Private)
+        -ValidatePlacement(IDomino domino, PlacementSide side) : bool
+        -PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation) : void
+        -HasPlayableDomino(IPlayer player) : bool
+        
+        %% Bussines Logic Pile and Hand (Private)
+        -DrawFromPile() : IDomino
+        -AddDominoToHand(IPlayer player, IDomino domino) : void
+        -RemoveDominoFromHand(IPlayer player, IDomino domino) : void
+        -DrawUntilPlayable(IPlayer player) : void
+        
+        %% Bussines Logic Game End and Resolution (Private)
+        -CheckGameOver() : bool
+        -IsGameBlocked() : bool
+        -IsDrawPileEmpty() : bool
+        -CalculateRemainingPips(IPlayer player) : int
+        -DetermineWinner() : IPlayer
+        -EndGame() : void
     }
 
     <<Enumeration>> GameStatus
