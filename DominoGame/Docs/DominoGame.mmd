@@ -1,5 +1,32 @@
 classDiagram
+    direction TB
 
+    %% Associations
+    GameLogic --> GameStatus
+    GameLogic --> WinCondition
+
+    %% Dependencies
+    GameLogic ..> TurnAction
+    GameLogic ..> PlacementSide
+    GameLogic ..> PlacementOrientation
+    GameLogic ..> IDomino
+
+    %% Compositions
+    GameLogic *-- IBoard
+    
+    %% Agregations
+    IBoard o-- IDomino
+    IDrawPile o-- IDomino
+    GameLogic o-- IDrawPile
+    GameLogic o-- IPlayer
+
+    %% Realizations
+    Domino ..|> IDomino
+    Player ..|> IPlayer
+    Board ..|> IBoard
+    DrawPile ..|> IDrawPile
+
+    %% Enumerations
     class GameStatus {
         NotStarted
         InProgress
@@ -28,6 +55,7 @@ classDiagram
         Skip
     }
 
+    %% Interfaces
     class IDomino {
         +int LeftPips
         +int RightPips
@@ -48,6 +76,7 @@ classDiagram
         +List~IDomino~ Dominoes
     }
 
+    %% Class Concrete
     class Domino {
         +int LeftPips
         +int RightPips
@@ -73,25 +102,32 @@ classDiagram
     }
 
     class GameLogic {
+        %% Fields / Properties
         -Dictionary~IPlayer, List~IDomino~~ _hands
         -List~IPlayer~ _players
-        -GameStatus _gameStatus
         -IBoard _board
+        -IPlayer _winner
         -IDrawPile _drawPile
         -int _currentPlayerIndex
-        -IPlayer _winner
+        -GameStatus _gameStatus
         -WinCondition _winCondition
 
+        %% Events Delegates
         +EventHandler TurnChanged
         +EventHandler GameEnded
 
+        %% Constructors
         +GameLogic(List~IPlayer~ players, IDrawPile drawPile)
+
+        %% Lifecycle (public)
         +StartGame() void
 
+        %% Actions (public)
         +PlayTurn(IPlayer player, IDomino domino, PlacementSide side, PlacementOrientation orientation) TurnAction
         +DrawCard(IPlayer player) void
         +AdvanceTurn() void
 
+        %% Get Info Game and Turn (public)
         +GetCurrentPlayer() IPlayer
         +GetPlayers() List~IPlayer~
         +GetStatus() GameStatus
@@ -99,6 +135,7 @@ classDiagram
         +GetOpenEndPips() List~int~
         +GetPlayerHand(IPlayer player) List~IDomino~
 
+        %% Logic Bussiness
         -ShuffleDrawPile() void
         -DealInitialHands() void
         -DetermineStartingPlayer() void
@@ -126,20 +163,5 @@ classDiagram
     <<Interface>> IBoard
     <<Interface>> IDrawPile
 
-    Domino ..|> IDomino
-    Player ..|> IPlayer
-    Board ..|> IBoard
-    DrawPile ..|> IDrawPile
 
-    GameLogic --> GameStatus
-    GameLogic --> WinCondition
-    GameLogic --> TurnAction
-    GameLogic --> PlacementSide
-    GameLogic --> PlacementOrientation
-    GameLogic --> IDrawPile
-    GameLogic *-- IBoard
-    GameLogic o-- IPlayer
-    GameLogic ..> IDomino
 
-    IBoard o-- IDomino
-    IDrawPile o-- IDomino
