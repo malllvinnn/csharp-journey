@@ -1,0 +1,145 @@
+classDiagram
+
+    class GameStatus {
+        NotStarted
+        InProgress
+        Blocked
+        Finished
+    }
+
+    class PlacementSide {
+        Left
+        Right
+    }
+
+    class PlacementOrientation {
+        Horizontal
+        Vertical
+    }
+
+    class WinCondition {
+        EmptyHand
+        FewestPips
+    }
+
+    class TurnAction {
+        PlayDomino
+        DrawDomino
+        Skip
+    }
+
+    class IDomino {
+        +int LeftPips
+        +int RightPips
+        +bool IsDouble
+    }
+
+    class IPlayer {
+        +string PlayerName
+    }
+
+    class IBoard {
+        +List~IDomino~ BoardDominoes
+        +int LeftOpenEnd
+        +int RightOpenEnd
+    }
+
+    class IDrawPile {
+        +List~IDomino~ Dominoes
+    }
+
+    class Domino {
+        +int LeftPips
+        +int RightPips
+        +bool IsDouble
+        +Domino(int leftPips, int rightPips, bool isDouble)
+    }
+
+    class Player {
+        +string PlayerName
+        +Player(string playerName)
+    }
+
+    class Board {
+        +List~IDomino~ BoardDominoes
+        +int LeftOpenEnd
+        +int RightOpenEnd
+        +Board(List~IDomino~ boardDominoes)
+    }
+
+    class DrawPile {
+        +List~IDomino~ Dominoes
+        +DrawPile(List~IDomino~ dominoes)
+    }
+
+    class GameLogic {
+        -Dictionary~IPlayer, List~IDomino~~ _hands
+        -List~IPlayer~ _players
+        -GameStatus _gameStatus
+        -IBoard _board
+        -IDrawPile _drawPile
+        -int _currentPlayerIndex
+        -IPlayer _winner
+        -WinCondition _winCondition
+
+        +EventHandler TurnChanged
+        +EventHandler GameEnded
+
+        +GameLogic(List~IPlayer~ players, IDrawPile drawPile)
+        +StartGame() void
+
+        +PlayTurn(IPlayer player, IDomino domino, PlacementSide side, PlacementOrientation orientation) TurnAction
+        +DrawCard(IPlayer player) void
+        +AdvanceTurn() void
+
+        +GetCurrentPlayer() IPlayer
+        +GetPlayers() List~IPlayer~
+        +GetStatus() GameStatus
+        +GetBoard() IBoard
+        +GetOpenEndPips() List~int~
+        +GetPlayerHand(IPlayer player) List~IDomino~
+
+        -ShuffleDrawPile() void
+        -DealInitialHands() void
+        -DetermineStartingPlayer() void
+        -GetHighestDouble(IPlayer player) IDomino
+        -ValidatePlacement(IDomino domino, PlacementSide side) bool
+        -PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation) void
+        -DrawFromPile() IDomino
+        -AddDominoToHand(IPlayer player, IDomino domino) void
+        -RemoveDominoFromHand(IPlayer player, IDomino domino) void
+        -CheckGameOver() bool
+        -DetermineWinner() IPlayer
+        -CalculateRemainingPips(IPlayer player) int
+        -IsGameBlocked() bool
+        -HasPlayableDomino(IPlayer player) bool
+        -EndGame() void
+    }
+
+    <<Enumeration>> GameStatus
+    <<Enumeration>> PlacementSide
+    <<Enumeration>> PlacementOrientation
+    <<Enumeration>> WinCondition
+    <<Enumeration>> TurnAction
+    <<Interface>> IDomino
+    <<Interface>> IPlayer
+    <<Interface>> IBoard
+    <<Interface>> IDrawPile
+
+    Domino ..|> IDomino
+    Player ..|> IPlayer
+    Board ..|> IBoard
+    DrawPile ..|> IDrawPile
+
+    GameLogic --> GameStatus
+    GameLogic --> WinCondition
+    GameLogic --> TurnAction
+    GameLogic --> PlacementSide
+    GameLogic --> PlacementOrientation
+    GameLogic --> IDrawPile
+    GameLogic *-- IBoard
+    GameLogic o-- IPlayer
+    GameLogic ..> IDomino
+
+    IBoard o-- IDomino
+    IDrawPile o-- IDomino
