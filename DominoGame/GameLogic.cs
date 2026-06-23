@@ -27,13 +27,21 @@ public class GameLogic
     
     // Lifecycle (public)
     public void StartGame(){}
-    public IPlayer GetWinner(){}
-    public WinCondition GetWinConditions(){}
+
+    public IPlayer GetWinner()
+    {
+        return _winner;
+    }
+
+    public WinCondition GetWinConditions()
+    {
+        return _winCondition;
+    }
     
     // Actions (public)
     public TurnAction PlayTurn(
-        IPlayer player, 
-        IDomino domino, 
+        IPlayer player,
+        IDomino domino,
         PlacementSide side,
         PlacementOrientation orientation
     ){}
@@ -41,18 +49,36 @@ public class GameLogic
     public void AdvanceTurn(){}
     
     // Get Info Game and Turn
-    public GameStatus GetStatus(){}
+    public GameStatus GetStatus()
+    {
+        return _gameStatus;
+    }
+
     public IPlayer GetCurrentPlayer(){}
     
     // Get Info Player and Hand
-    public List<IPlayer> GetPlayers(){}
+    public List<IPlayer> GetPlayers()
+    {
+        return _players;
+    }
     public List<IDomino> GetPlayerHands(IPlayer player){}
-    public int GetRemainingPips(IPlayer player){}
+
+    public int GetRemainingPips(IPlayer player)
+    {
+        return 0;
+    }
     
     // Get Info Board
-    public IBoard GetBoard(){}
+    public IBoard GetBoard()
+    {
+        return _board;
+    }
     public List<int> GetOpenEndPips(){}
-    public int GetDrawPileCount(){}
+
+    public int GetDrawPileCount()
+    {
+        return 0;
+    }
     
     // Business Logic Setup (Private)
     private void ShuffleDrawPile(){}
@@ -63,7 +89,10 @@ public class GameLogic
     private void RedealAllHands(){}
     
     // Business Logic Turn and Placement (Private)
-    private bool ValidatePlacement(IDomino domino, PlacementSide side){}
+    private bool ValidatePlacement(IDomino domino, PlacementSide side)
+    {
+        return false;
+    }
     private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation){}
     private bool HasPlayableDomino(IPlayer player){}
     
@@ -75,7 +104,11 @@ public class GameLogic
     
     // Business Logic Game End and Resolution (Private)
     private bool CheckGameOver(){}
-    private bool IsGameBlocked(){}
+
+    private bool IsGameBlocked()
+    {
+        return false;
+    }
     private bool IsDrawPileEmpty(){}
     private int CalculateRemainingPips(IPlayer player){}
     private IPlayer DetermineWinner(){}
