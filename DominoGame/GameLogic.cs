@@ -26,7 +26,10 @@ public class GameLogic
     }
     
     // Lifecycle (public)
-    public void StartGame(){}
+    public void StartGame()
+    {
+        Console.WriteLine("Game started"); // sementara
+    }
 
     public IPlayer GetWinner()
     {
@@ -44,9 +47,21 @@ public class GameLogic
         IDomino domino,
         PlacementSide side,
         PlacementOrientation orientation
-    ){}
-    public void DrawCard(IPlayer player){}
-    public void AdvanceTurn(){}
+    )
+    {
+        Console.WriteLine($"{player.Name} plays a domino with turn action");
+        return TurnAction.PlayDomino; // sementara
+    }
+
+    public void DrawCard(IPlayer player)
+    {
+        Console.WriteLine($"{player.Name} draw a card"); // sementara
+    }
+
+    public void AdvanceTurn()
+    {
+        Console.WriteLine("Advance Turn"); // sementara
+    }
     
     // Get Info Game and Turn
     public GameStatus GetStatus()
@@ -54,52 +69,105 @@ public class GameLogic
         return _gameStatus;
     }
 
-    public IPlayer GetCurrentPlayer(){}
+    public IPlayer GetCurrentPlayer()
+    {
+        return _players[_currentPlayerIndex]; // sementara (tapi tergantung)
+    }
     
     // Get Info Player and Hand
     public List<IPlayer> GetPlayers()
     {
         return _players;
     }
-    public List<IDomino> GetPlayerHands(IPlayer player){}
 
-    public int GetRemainingPips(IPlayer player){}
+    public List<IDomino> GetPlayerHands(IPlayer player)
+    {
+        return _hands[player]; // sementara (tapi tergantung)
+    }
+
+    public int GetRemainingPips(IPlayer player)
+    {
+        return 0; // sementara
+    }
     
     // Get Info Board
     public IBoard GetBoard()
     {
         return _board;
     }
-    public List<int> GetOpenEndPips(){}
 
-    public int GetDrawPileCount(){}
+    public List<int> GetOpenEndPips()
+    {
+        return new List<int>(); // sementara
+    }
+
+    public int GetDrawPileCount()
+    {
+        return _drawPile.Dominoes.Count; // sementara (tapi tergantung)
+    }
     
     // Business Logic Setup (Private)
     private void ShuffleDrawPile(){}
     private void DealInitialHands(){}
     private void DetermineStartingPlayer(){}
-    private IDomino GetHighestDouble(IPlayer player){}
-    private bool HasAnyDouble(){}
+
+    private IDomino GetHighestDouble(IPlayer player)
+    {
+        return null; // sementara
+    }
+
+    private bool HasAnyDouble()
+    {
+        return false; // sementara
+    }
     private void RedealAllHands(){}
     
     // Business Logic Turn and Placement (Private)
-    private bool ValidatePlacement(IDomino domino, PlacementSide side){}
+    private bool ValidatePlacement(IDomino domino, PlacementSide side)
+    {
+        return false; // sementara
+    }
     private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation){}
-    private bool HasPlayableDomino(IPlayer player){}
+
+    private bool HasPlayableDomino(IPlayer player)
+    {
+        return false; // sementara
+    }
     
     // Business Logic Pile and Hand (Private)
-    private IDomino DrawFromPile(){}
+    private IDomino DrawFromPile()
+    {
+        return null; // sementara
+    }
     private void AddDominoToHand(IPlayer player, IDomino domino){}
     private void RemoveDominoFromHand(IPlayer player, IDomino domino){}
     private void DrawUntilPlayable(IPlayer player){}
     
     // Business Logic Game End and Resolution (Private)
-    private bool CheckGameOver(){}
+    private bool CheckGameOver()
+    {
+        return false; // sementara
+    }
 
-    private bool IsGameBlocked(){}
-    private bool IsDrawPileEmpty(){}
-    private int CalculateRemainingPips(IPlayer player){}
-    private IPlayer DetermineWinner(){}
+    private bool IsGameBlocked()
+    {
+        return false; // sementara
+    }
+
+    private bool IsDrawPileEmpty()
+    {
+        return false; // sementara
+    }
+
+    private int CalculateRemainingPips(IPlayer player)
+    {
+        return 0; // sementara
+    }
+
+    private IPlayer DetermineWinner()
+    {
+        return null; // sementara
+    }
     private void EndGame(){}
     
 }
