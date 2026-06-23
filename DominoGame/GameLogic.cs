@@ -36,10 +36,10 @@ public class GameLogic
         }
 
         // kocok pile
-        ShuffleDrawPile(); // sementara
+        ShuffleDrawPile();
 
-        // bagi kartu awal
-        DealInitialHands(); // sementara
+        // pembagian kartu awal
+        DealInitialHands();
 
         // ulangi bagi-ulang SELAMA beul ada double
         while (HasAnyDouble() == false)
@@ -141,8 +141,40 @@ public class GameLogic
     }
     
     // Business Logic Setup (Private)
-    private void ShuffleDrawPile(){}
-    private void DealInitialHands(){}
+    private void ShuffleDrawPile()
+    {
+        List<IDomino> dominoes = _drawPile.Dominoes;
+        Random rnd = new Random();
+        
+        for (int i = dominoes.Count - 1; i > 0; i--)
+        {
+            int j = rnd.Next(i + 1);
+            (dominoes[i], dominoes[j]) = (dominoes[j], dominoes[i]);
+        }
+    }
+
+    private void DealInitialHands()
+    {
+        // konstanta jumlah kartu per pemain
+        const int cardsPerPlayer = 7;
+
+        // loop tiap pemain
+        foreach (IPlayer player in _players)
+        {
+            // mendaftarkan pemain ke dictionary sebelum diisi
+            _hands[player] = new List<IDomino>();
+
+            // loop sebanyak cards per-player
+            for (int i = 0; i < cardsPerPlayer; i++)
+            {
+                // ambil 1 domino
+                IDomino domino = DrawFromPile();
+                
+                // tambahkan ke hand
+                AddDominoToHand(player, domino);
+            }
+        }
+    }
     private void DetermineStartingPlayer(){}
 
     private IDomino GetHighestDouble(IPlayer player)
@@ -152,7 +184,7 @@ public class GameLogic
 
     private bool HasAnyDouble()
     {
-        return false; // sementara
+        return true; // sementara
     }
     private void RedealAllHands(){}
     
@@ -169,11 +201,32 @@ public class GameLogic
     }
     
     // Business Logic Pile and Hand (Private)
-    private IDomino DrawFromPile()
+    private IDomino? DrawFromPile()
     {
-        return null; // sementara
+        // cek pile apakah kosong
+        if (IsDrawPileEmpty())
+        {
+            return null;
+        }
+
+        // tentukan indeks domino yang diambil
+        int lastIndex = _drawPile.Dominoes.Count - 1;
+
+        // ambil domino di indeks, simpan ke variabel
+        IDomino drawnDomino = _drawPile.Dominoes[lastIndex];
+
+        // hapus domino dari pile sesuai index
+        _drawPile.Dominoes.RemoveAt(lastIndex);
+
+        // return domino yang di ambil
+        return drawnDomino;
     }
-    private void AddDominoToHand(IPlayer player, IDomino domino){}
+
+    private void AddDominoToHand(IPlayer player, IDomino domino)
+    {
+        List<IDomino> hand = _hands[player];
+        hand.Add(domino);
+    }
     private void RemoveDominoFromHand(IPlayer player, IDomino domino){}
     private void DrawUntilPlayable(IPlayer player){}
     
@@ -190,7 +243,7 @@ public class GameLogic
 
     private bool IsDrawPileEmpty()
     {
-        return false; // sementara
+        return _drawPile.Dominoes.Count == 0;
     }
 
     private int CalculateRemainingPips(IPlayer player)
