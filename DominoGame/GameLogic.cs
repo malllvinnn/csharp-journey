@@ -63,10 +63,7 @@ public class GameLogic
     }
     public List<IDomino> GetPlayerHands(IPlayer player){}
 
-    public int GetRemainingPips(IPlayer player)
-    {
-        return 0;
-    }
+    public int GetRemainingPips(IPlayer player){}
     
     // Get Info Board
     public IBoard GetBoard()
@@ -75,10 +72,7 @@ public class GameLogic
     }
     public List<int> GetOpenEndPips(){}
 
-    public int GetDrawPileCount()
-    {
-        return 0;
-    }
+    public int GetDrawPileCount(){}
     
     // Business Logic Setup (Private)
     private void ShuffleDrawPile(){}
@@ -89,10 +83,7 @@ public class GameLogic
     private void RedealAllHands(){}
     
     // Business Logic Turn and Placement (Private)
-    private bool ValidatePlacement(IDomino domino, PlacementSide side)
-    {
-        return false;
-    }
+    private bool ValidatePlacement(IDomino domino, PlacementSide side){}
     private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation){}
     private bool HasPlayableDomino(IPlayer player){}
     
@@ -105,10 +96,7 @@ public class GameLogic
     // Business Logic Game End and Resolution (Private)
     private bool CheckGameOver(){}
 
-    private bool IsGameBlocked()
-    {
-        return false;
-    }
+    private bool IsGameBlocked(){}
     private bool IsDrawPileEmpty(){}
     private int CalculateRemainingPips(IPlayer player){}
     private IPlayer DetermineWinner(){}
