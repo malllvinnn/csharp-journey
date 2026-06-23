@@ -1,3 +1,4 @@
+using DominoGame.Entities;
 using DominoGame.Enums;
 using DominoGame.Interfaces;
 
@@ -28,6 +29,8 @@ public class GameLogic
     // Lifecycle (public)
     public void StartGame()
     {
+        _board = new Board(new List<IDomino>());
+        
         Console.WriteLine("Game started"); // sementara
     }
 
