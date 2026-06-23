@@ -29,7 +29,38 @@ public class GameLogic
     // Lifecycle (public)
     public void StartGame()
     {
+        // validasi jumlah pemain
+        if (_players.Count < 2 || _players.Count > 8)
+        {
+            throw new ArgumentException("Players minimal 2 dan maksimal 8", nameof(_players));
+        }
+
+        // kocok pile
+        ShuffleDrawPile(); // sementara
+
+        // bagi kartu awal
+        DealInitialHands(); // sementara
+
+        // ulangi bagi-ulang SELAMA beul ada double
+        while (HasAnyDouble() == false)
+        {
+            RedealAllHands();
+        }
+
+        // tentukan pemain pembuka (double tertinggi)
+        DetermineStartingPlayer(); // sementara
+
+        // buat papan kosong
         _board = new Board(new List<IDomino>());
+
+        // set status berjalan
+        _gameStatus = GameStatus.InProgress;
+
+        // (opsional) reset penghitung skip
+        _consecutiveSkips = 0;
+
+        // beritahu giliran dimulai
+        TurnChanged?.Invoke(this, EventArgs.Empty);
         
         Console.WriteLine("Game started"); // sementara
     }
