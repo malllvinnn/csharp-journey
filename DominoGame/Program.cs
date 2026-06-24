@@ -1,38 +1,26 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using DominoGame;
-using DominoGame.Entities;
+﻿using DominoGame.Entities;
 using DominoGame.Interfaces;
+using DominoGame.UI;
 
-// test sementara buat domino
-var dominoes = new List<IDomino>();
-for (int left = 0; left <= 12; left++)
+ConsoleUI consoleUI = new ConsoleUI();
+
+// dummy board
+List<IDomino> dummyBoard = new List<IDomino>
 {
-    for (int right = left; right <= 12; right++)
-    {
-        dominoes.Add(new Domino(left, right));
-    }
-}
-
-// test sementara buat draw pile
-var drawPile = new DrawPile(dominoes);
-
-// test sementara buat players
-var players = new List<IPlayer>
-{
-    new Player("John Doe"),   
-    new Player("Jane Doe"),   
+    new Domino(2, 2),
+    new Domino(2, 5),
+    new Domino(5, 6),
 };
 
-// test sementara game logic
-var game = new GameLogic(players, drawPile);
-
-// test sementara events
-game.GameEnded += (sender, e) => Console.WriteLine("Game Selesai!!");
-
-game.StartGame();
-
-foreach (IPlayer player in game.GetPlayers())
+// dummy data
+var dummyHand = new List<IDomino>
 {
-    Console.WriteLine(player.Name);
-}
+    new Domino(6, 2),
+    new Domino(3, 5),
+    new Domino(3, 3),
+};
+
+consoleUI.ShowBoard(dummyBoard,2, 6);
+consoleUI.ShowPlayerHand("John Doe", dummyHand);
+consoleUI.ShowInfo("John Doe", 45);
+consoleUI.ShowMenu();
