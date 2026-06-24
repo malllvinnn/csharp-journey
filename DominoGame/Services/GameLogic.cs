@@ -24,6 +24,7 @@ public class GameLogic
     {
         _players = players;
         _drawPile = drawPile;
+        _hands = new Dictionary<IPlayer, List<IDomino>>();
     }
     
     // Lifecycle (public)
@@ -48,7 +49,7 @@ public class GameLogic
         }
 
         // tentukan pemain pembuka (double tertinggi)
-        DetermineStartingPlayer(); // sementara
+        DetermineStartingPlayer();
 
         // buat papan kosong
         _board = new Board(new List<IDomino>());
@@ -61,8 +62,6 @@ public class GameLogic
 
         // beritahu giliran dimulai
         TurnChanged?.Invoke(this, EventArgs.Empty);
-        
-        Console.WriteLine("Game started"); // sementara
     }
 
     public IPlayer GetWinner()
@@ -168,18 +167,61 @@ public class GameLogic
             for (int i = 0; i < cardsPerPlayer; i++)
             {
                 // ambil 1 domino
-                IDomino domino = DrawFromPile();
+                IDomino? domino = DrawFromPile();
                 
                 // tambahkan ke hand
                 AddDominoToHand(player, domino);
             }
         }
     }
-    private void DetermineStartingPlayer(){}
 
-    private IDomino GetHighestDouble(IPlayer player)
+    private void DetermineStartingPlayer()
     {
-        return null; // sementara
+        // penampung 
+        int startingPlayerIndex = -1;
+        IDomino? highestOverall = null;
+
+        // loop tiap pemain dengan index
+        for (int i = 0; i < _players.Count; i++)
+        {
+            // untuk tiap pemain, ambil double yg tertinggi
+            IDomino? playerDouble = GetHighestDouble(_players[i]);
+            
+            // jika playerDOuble null, SKIP
+            if (playerDouble == null) continue;
+
+            // jika punya highest overall belum ada (null) atau player double lebih tinggi maka update
+            if (highestOverall == null || playerDouble.LeftPips > highestOverall.LeftPips)
+            {
+                highestOverall = playerDouble;
+                startingPlayerIndex = i;
+            }
+        }
+        
+        _currentPlayerIndex = startingPlayerIndex;
+    }
+
+    private IDomino? GetHighestDouble(IPlayer player)
+    {
+        // variable penampung highest
+        IDomino? highestDomino = null;
+
+        // loop tiap domino
+        foreach (IDomino domino in _hands[player])
+        {
+            if (domino.IsDouble)
+            {
+                // apakah ini double pertama (highest masih null) ATAU lebih tinggi?
+                if (highestDomino == null || domino.LeftPips > highestDomino.LeftPips)
+                {
+                    // update highest domino
+                    highestDomino = domino;
+                }
+            }
+        }
+        
+        // return highest
+        return highestDomino;
     }
 
     private bool HasAnyDouble()

@@ -1,4 +1,5 @@
-﻿using DominoGame.Entities;
+﻿using DominoGame;
+using DominoGame.Entities;
 using DominoGame.Interfaces;
 using DominoGame.UI;
 
