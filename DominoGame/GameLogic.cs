@@ -41,7 +41,7 @@ public class GameLogic
         // pembagian kartu awal
         DealInitialHands();
 
-        // ulangi bagi-ulang SELAMA beul ada double
+        // ulangi bagi-ulang SELAMA belum ada double
         while (HasAnyDouble() == false)
         {
             RedealAllHands();
@@ -184,9 +184,37 @@ public class GameLogic
 
     private bool HasAnyDouble()
     {
-        return true; // sementara
+        // loop tiap pemain
+        foreach (IPlayer player in _players)
+        {
+            // untuk setiap pemain, loop domino 
+            foreach (IDomino domino in _hands[player])
+            {
+                // jika domino double
+                if (domino.IsDouble)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
-    private void RedealAllHands(){}
+
+    private void RedealAllHands()
+    {
+        foreach (IPlayer player in _players)
+        {
+            // kembalikan kartu dari tangan pemain ke pile
+            _drawPile.Dominoes.AddRange(_hands[player]);
+        }
+        
+        // kocok ulang 
+        ShuffleDrawPile();
+        
+        // bagi ulang
+        DealInitialHands();
+    }
     
     // Business Logic Turn and Placement (Private)
     private bool ValidatePlacement(IDomino domino, PlacementSide side)
