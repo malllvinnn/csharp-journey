@@ -82,18 +82,69 @@ public class GameLogic
         PlacementOrientation orientation
     )
     {
-        Console.WriteLine($"{player.Name} plays a domino with turn action");
-        return TurnAction.PlayDomino; // sementara
+        // validasi penempatan (validate placement)
+        if (!ValidatePlacement(domino, side))
+        {
+            // jika tidak valid kembalikan sesuatu
+            throw new ArgumentException("Invalid placement", nameof(domino));
+        }
+        
+        // jika valid taruh domino ke papan
+        PlaceDomino(domino, side, orientation);
+        
+        // hapus domino dari tangan pemain
+        RemoveDominoFromHand(player, domino);
+
+        // reset skip
+        _consecutiveSkips = 0;
+
+        // cehck game over
+        if (CheckGameOver())
+        {
+            EndGame();
+            return TurnAction.PlayDomino;
+        }
+        
+        // pindah giliran pemain berikutnya
+        AdvanceTurn();
+
+        // return action yang sesuai
+        return TurnAction.PlayDomino;
     }
 
     public void DrawCard(IPlayer player)
     {
-        Console.WriteLine($"{player.Name} draw a card"); // sementara
+        // narik sampai bisa main atau pile habis
+        DrawUntilPlayable(player);
+        
+        // check hasil narik, apakah sekarang bisa narik?
+        if (HasPlayableDomino(player))
+        {
+            // pemain dapat domino yang bisa dimainkan
+            return;
+        }
+        // tetap ngga bisa main (pile habis) -> SKIP
+        _consecutiveSkips++;
+
+        // check apakah skip bikin game BLOCK
+        if (IsGameBlocked())
+        {
+            // semua skip beruntun, Game Berakhir
+            EndGame();
+            return;
+        }
+        
+        // belum BLOCKED, pindah giliran pemain (current player terlewatkan)
+        AdvanceTurn();
     }
 
     public void AdvanceTurn()
     {
-        Console.WriteLine("Advance Turn"); // sementara
+        // pindah pemain berikutnya
+        _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
+        
+        // notifikasi UI giliran berubah
+        TurnChanged?.Invoke(this, EventArgs.Empty);
     }
     
     // Get Info Game and Turn
@@ -120,7 +171,8 @@ public class GameLogic
 
     public int GetRemainingPips(IPlayer player)
     {
-        return 0; // sementara
+        // return kalukasi total pips
+        return CalculateRemainingPips(player);
     }
     
     // Get Info Board
@@ -131,7 +183,18 @@ public class GameLogic
 
     public List<int> GetOpenEndPips()
     {
-        return new List<int>(); // sementara
+        // jika papan kosong, kemablikan kosong
+        if (_board.BoardDominoes.Count == 0) return new List<int>();
+        
+        // buat list endsPips
+        List<int> openEndPips = new List<int>();
+        
+        // tambahkan left dan right pips end
+        openEndPips.Add(_board.LeftOpenEnd);
+        openEndPips.Add(_board.RightOpenEnd);
+
+        // return ends pips
+        return openEndPips;
     }
 
     public int GetDrawPileCount()
@@ -261,13 +324,82 @@ public class GameLogic
     // Business Logic Turn and Placement (Private)
     private bool ValidatePlacement(IDomino domino, PlacementSide side)
     {
-        return false; // sementara
+        // langsung kembalikan true jika papan dari awal kosong
+        if (_board.BoardDominoes.Count == 0) return true;
+
+        // variable penampung untuk side yang relavan
+        int openEnd = side == PlacementSide.Left ? _board.LeftOpenEnd : _board.RightOpenEnd;
+        
+        //  return domino left pips atau kalau tidak return right pips
+        return domino.LeftPips == openEnd || domino.RightPips == openEnd;
     }
-    private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation){}
+
+    private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation)
+    {
+        // jika papan kosong, langsung saja
+        if (_board.BoardDominoes.Count == 0)
+        {
+            _board.BoardDominoes.Add(domino);
+            _board.LeftOpenEnd = domino.LeftPips;
+            _board.RightOpenEnd = domino.RightPips;
+            
+            return;
+        }
+
+        // pasang kiri
+        if (side == PlacementSide.Left)
+        {
+            int openEnd = _board.LeftOpenEnd;
+            
+            // tentukan ujung baru (sisi yang TIDAK menempel)
+            int newEnd;
+            if (domino.RightPips == openEnd)
+            {
+                // sisi kanan menempel, kiri jadi ujung baru
+                newEnd = domino.LeftPips;
+            }
+            else
+            {
+                // sisi kiri menempel, kanan jadi ujung baru
+                newEnd = domino.RightPips;
+            }
+            
+            _board.LeftOpenEnd = newEnd;
+            // taruh di awal (kiri)
+            _board.BoardDominoes.Insert(0, domino);
+        }
+        // selain itu, pasang kanan
+        else
+        {
+            int openEnd = _board.RightOpenEnd;
+            int newEnd;
+            
+            if (domino.LeftPips == openEnd)
+            {
+                // sisi kiri menempel, kanan jadi ujung baru
+                newEnd = domino.RightPips;
+            }
+            else
+            {
+                // sisi kanan menempel, kiri jadi ujung baru
+                newEnd = domino.LeftPips;
+            }
+            
+            _board.RightOpenEnd = newEnd;
+            // taruh di akhir (kanan)
+            _board.BoardDominoes.Add(domino);
+        }
+    }
 
     private bool HasPlayableDomino(IPlayer player)
     {
-        return false; // sementara
+        // check apakah ada kartu domino yang bisa ditaruh
+        foreach (IDomino domino in _hands[player])
+        {
+            if (ValidatePlacement(domino, PlacementSide.Left) ||
+                ValidatePlacement(domino, PlacementSide.Right)) return true;
+        }
+        return false;
     }
     
     // Business Logic Pile and Hand (Private)
@@ -294,21 +426,46 @@ public class GameLogic
 
     private void AddDominoToHand(IPlayer player, IDomino domino)
     {
+        // add kartu domino player ke hand
         List<IDomino> hand = _hands[player];
         hand.Add(domino);
     }
-    private void RemoveDominoFromHand(IPlayer player, IDomino domino){}
-    private void DrawUntilPlayable(IPlayer player){}
+
+    private void RemoveDominoFromHand(IPlayer player, IDomino domino)
+    {
+        // remove kartu domino player dari hand
+        List<IDomino> hand = _hands[player];
+        hand.Remove(domino);
+    }
+
+    private void DrawUntilPlayable(IPlayer player)
+    {
+        // loop pemain belum punya domino yang bisa dimainkan dan pile masih ada isi
+        while (!HasPlayableDomino(player) && !IsDrawPileEmpty())
+        {
+            // tarik 1 domino, masukan ke tangan
+            IDomino? domino = DrawFromPile();
+            if (domino != null) AddDominoToHand(player, domino);
+        }
+    }
     
     // Business Logic Game End and Resolution (Private)
     private bool CheckGameOver()
     {
-        return false; // sementara
+        // loop tiap pemain
+        foreach (IPlayer player in _players)
+        {
+            // jika tangan pemain kosong, makan return true (selesai)
+            if (_hands[player].Count == 0) return true;
+        }
+        
+        return false;
     }
 
     private bool IsGameBlocked()
     {
-        return false; // sementara
+        // return true blocked jika skip lebih dari jumlah pemain
+        return _consecutiveSkips >= _players.Count;
     }
 
     private bool IsDrawPileEmpty()
@@ -318,13 +475,67 @@ public class GameLogic
 
     private int CalculateRemainingPips(IPlayer player)
     {
-        return 0; // sementara
+        // variable penampung total pips
+        int totalPips = 0;
+
+        // loop domino kartu ditangan tiap pemain
+        foreach (IDomino domino in _hands[player])
+        {
+            // untuk tiap domino, tambahkan total dari kedua sisi
+            totalPips += domino.LeftPips + domino.RightPips;
+        }
+
+        // return total pips
+        return totalPips;
     }
 
     private IPlayer DetermineWinner()
     {
-        return null; // sementara
+        // jika kartu tangan pemain habis, langsung return pemain untuk menang
+        foreach (IPlayer player in _players)
+        {
+            if (_hands[player].Count == 0)
+            {
+                // set win kartu habis
+                _winCondition = WinCondition.EmptyHand;
+                
+                return player;
+            };
+        }
+        
+        // kartu tangan tidak ada yang habis, adu pips paling sedikit
+        _winCondition = WinCondition.FewestPips;
+        // anggap pemain pertama untuk di kalkulasi
+        IPlayer winner = _players[0];
+        // pips nya
+        int lowestPips = CalculateRemainingPips(_players[0]);
+
+        foreach (IPlayer player in _players)
+        {
+            int pips = CalculateRemainingPips(player);
+            // jika lebih sedikit
+            if (pips < lowestPips)
+            {
+                // update winner pemain dan pips terendah
+                winner = player;
+                lowestPips = pips;
+            }
+        }
+
+        // return winner
+        return winner;
     }
-    private void EndGame(){}
+
+    private void EndGame()
+    {
+        // set game status
+        _gameStatus = GameStatus.Finished;
+
+        // tentulam pemenang
+        _winner = DetermineWinner();
+        
+        // beritahu UI Game berakhir
+        GameEnded?.Invoke(this, EventArgs.Empty);
+    }
     
 }
