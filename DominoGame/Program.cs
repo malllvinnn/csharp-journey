@@ -3,25 +3,30 @@ using DominoGame.Entities;
 using DominoGame.Interfaces;
 using DominoGame.UI;
 
-ConsoleUI consoleUI = new ConsoleUI();
-
-// dummy board
-List<IDomino> dummyBoard = new List<IDomino>
+// bikin players
+List<IPlayer> players = new List<IPlayer>
 {
-    new Domino(2, 2),
-    new Domino(2, 5),
-    new Domino(5, 6),
+    new Player("John Doe"),
+    new Player("Jane Doe"),
 };
 
-// dummy data
-var dummyHand = new List<IDomino>
+// bikin semua domino (91 untuk Double-12)
+List<IDomino> dominoes = new List<IDomino>();
+for (int left = 0; left <= 12; left++)
 {
-    new Domino(6, 2),
-    new Domino(3, 5),
-    new Domino(3, 3),
-};
+    for (int right = left; right <= 12; right++)
+    {
+        dominoes.Add(new Domino(left, right));
+    }
+}
 
-consoleUI.ShowBoard(dummyBoard,2, 6);
-consoleUI.ShowPlayerHand("John Doe", dummyHand);
-consoleUI.ShowInfo("John Doe", 45);
-consoleUI.ShowMenu();
+// bikin drawPile dari domino
+DrawPile drawPile = new DrawPile(dominoes);
+
+GameLogic game = new GameLogic(players, drawPile);
+
+game.StartGame();
+
+ConsoleUI ui = new ConsoleUI(game);
+
+ui.Run();

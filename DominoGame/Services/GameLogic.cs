@@ -6,19 +6,19 @@ namespace DominoGame;
 
 public class GameLogic
 {
-    private Dictionary<IPlayer, List<IDomino>> _hands;
+    private readonly Dictionary<IPlayer, List<IDomino>> _hands;
     private List<IPlayer> _players;
-    private IBoard _board;
-    private IPlayer _winner;
-    private IDrawPile _drawPile;
+    private IBoard? _board;
+    private IPlayer? _winner;
+    private readonly IDrawPile _drawPile;
     private int _currentPlayerIndex;
     private int _consecutiveSkips;
     private GameStatus _gameStatus;
     private WinCondition _winCondition;
     
     // events
-    public event EventHandler TurnChanged;
-    public event EventHandler GameEnded;
+    public event EventHandler? TurnChanged;
+    public event EventHandler? GameEnded;
 
     public GameLogic(List<IPlayer> players, IDrawPile drawPile)
     {
@@ -64,7 +64,7 @@ public class GameLogic
         TurnChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public IPlayer GetWinner()
+    public IPlayer? GetWinner()
     {
         return _winner;
     }
@@ -174,17 +174,23 @@ public class GameLogic
         // return kalukasi total pips
         return CalculateRemainingPips(player);
     }
+
+    public bool CanPlayerPlay(IPlayer player)
+    {
+        // return play able domino
+        return HasPlayableDomino(player);
+    }
     
     // Get Info Board
     public IBoard GetBoard()
     {
-        return _board;
+        return _board!;
     }
 
     public List<int> GetOpenEndPips()
     {
         // jika papan kosong, kemablikan kosong
-        if (_board.BoardDominoes.Count == 0) return new List<int>();
+        if (_board!.BoardDominoes.Count == 0) return new List<int>();
         
         // buat list endsPips
         List<int> openEndPips = new List<int>();
@@ -233,7 +239,7 @@ public class GameLogic
                 IDomino? domino = DrawFromPile();
                 
                 // tambahkan ke hand
-                AddDominoToHand(player, domino);
+                if (domino != null) AddDominoToHand(player, domino);
             }
         }
     }
@@ -325,7 +331,7 @@ public class GameLogic
     private bool ValidatePlacement(IDomino domino, PlacementSide side)
     {
         // langsung kembalikan true jika papan dari awal kosong
-        if (_board.BoardDominoes.Count == 0) return true;
+        if (_board!.BoardDominoes.Count == 0) return true;
 
         // variable penampung untuk side yang relavan
         int openEnd = side == PlacementSide.Left ? _board.LeftOpenEnd : _board.RightOpenEnd;
@@ -337,7 +343,7 @@ public class GameLogic
     private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation)
     {
         // jika papan kosong, langsung saja
-        if (_board.BoardDominoes.Count == 0)
+        if (_board!.BoardDominoes.Count == 0)
         {
             _board.BoardDominoes.Add(domino);
             _board.LeftOpenEnd = domino.LeftPips;
