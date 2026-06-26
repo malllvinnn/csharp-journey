@@ -79,8 +79,26 @@ public class ConsoleUI
         // tidak bisa main → narik otomatis
         if (!_game.CanPlayerPlay(current))
         {
-            Console.WriteLine($"\n{current.Name} tidak bisa main, menarik kartu...");
+            int before = _game.GetPlayerHands(current).Count;
+            
+            Console.WriteLine($"\n\u26a0 {current.Name} tidak punya kartu yang bisa dimainkan..");
+            Console.WriteLine("Menarik kartu dari pile...");
+            
             _game.DrawCard(current);
+            
+            int afterCount = _game.GetPlayerHands(current).Count;
+            int drawPileCount = afterCount - before;
+
+            if (_game.CanPlayerPlay(current))
+            {
+                Console.WriteLine($"Menarik {drawPileCount} kartu. Sekarang ada kartu yang bisa dimainkan!");
+            }
+            else
+            {
+                Console.WriteLine("Pile habis dan tetap tidak bisa main. Giliran dilewati.");
+            }
+            
+            PauseBeforeNext();
             return;
         }
 
@@ -100,6 +118,8 @@ public class ConsoleUI
         {
             Console.WriteLine("Pilihan tidak valid.");
         }
+        
+        PauseBeforeNext();
     }
     
     // main domino (minta nomor + sisi, panggil PlayTurn)
@@ -168,6 +188,12 @@ public class ConsoleUI
                 Console.WriteLine($"Game blocked! {winner.Name} menang dengan pip paling sedikit.");
             }
         }
+    }
+    
+    private void PauseBeforeNext()
+    {
+        Console.WriteLine("\nTekan Enter untuk lanjut...");
+        Console.ReadLine();
     }
 
 }
