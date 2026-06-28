@@ -41,16 +41,26 @@ public class ConsoleUI
         
         foreach (IDomino domino in dominoes)
         {
+            int leftShow, rightShow;
+            
+            // menentukan orientasi placement
+
             if (domino.LeftPips == connectingPip)
             {
-                Console.Write($"[{domino.LeftPips}|{domino.RightPips}]");
+                leftShow = domino.LeftPips;
+                rightShow = domino.RightPips;
                 connectingPip = domino.RightPips;
             }
             else
             {
-                Console.Write($"[{domino.RightPips}|{domino.LeftPips}]");
+                leftShow = domino.RightPips;
+                rightShow = domino.LeftPips;
                 connectingPip = domino.LeftPips;
             }
+            
+            // print sekali dengan penandaan double dan ngga
+            string separator = domino.IsDouble ? "^" : "|";
+            Console.Write($"[{leftShow}{separator}{rightShow}]");
         }
         Console.WriteLine();
         Console.WriteLine($"Left Open: {board.LeftOpenEnd} | Right Open: {board.RightOpenEnd}");
