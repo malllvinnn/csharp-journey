@@ -3,12 +3,15 @@ using DominoGame.Entities;
 using DominoGame.Interfaces;
 using DominoGame.UI;
 
+// minta nama players
+List<string> names = ConsoleUI.AskPlayerNames();
+
 // bikin players
-List<IPlayer> players = new List<IPlayer>
+List<IPlayer> players = new List<IPlayer>();
+foreach (string name in names)
 {
-    new Player("John Doe"),
-    new Player("Jane Doe"),
-};
+    players.Add(new Player(name));
+}
 
 // bikin semua domino (91 untuk Double-12)
 List<IDomino> dominoes = new List<IDomino>();
