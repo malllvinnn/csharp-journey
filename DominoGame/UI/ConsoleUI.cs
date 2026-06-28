@@ -75,7 +75,7 @@ public class ConsoleUI
         ShowBoard();
         ShowPlayerHand(current);
         ShowInfo();
-
+        
         // tidak bisa main → narik otomatis
         if (!_game.CanPlayerPlay(current))
         {
@@ -99,27 +99,18 @@ public class ConsoleUI
             }
             
             PauseBeforeNext();
+            // layar privasi kalau giliran pindah
+            ShowTransitionIfPlayerChange(current);
             return;
         }
 
-        // bisa main → tampilkan menu
-        ShowMenu();
-        string? choice = Console.ReadLine();
-
-        if (choice == "1")
-        {
-            HandlePlayDomino(current);
-        }
-        else if (choice == "2")
-        {
-            _game.DrawCard(current);
-        }
-        else
-        {
-            Console.WriteLine("Pilihan tidak valid.");
-        }
+        // bisa main -> langsung pilih domino
+        Console.WriteLine("\n============= GAME ACTION ==============");
+        Console.WriteLine("Mainkan domino kamu:");
+        HandlePlayDomino(current);
         
         PauseBeforeNext();
+        ShowTransitionIfPlayerChange(current);
     }
     
     // main domino (minta nomor + sisi, panggil PlayTurn)
@@ -130,8 +121,9 @@ public class ConsoleUI
         // minta nomor domino
         Console.Write("Pilih nomor domino: ");
         string? numInput = Console.ReadLine();
+        bool convertedNum = int.TryParse(numInput, out int number);
 
-        if (!int.TryParse(numInput, out int number) || number < 1 || number > hand.Count)
+        if (!convertedNum || number < 1 || number > hand.Count)
         {
             Console.WriteLine("Nomor tidak valid.");
             return;
@@ -193,6 +185,26 @@ public class ConsoleUI
     private void PauseBeforeNext()
     {
         Console.WriteLine("\nTekan Enter untuk lanjut...");
+        Console.ReadLine();
+    }
+
+    private void ShowTransitionIfPlayerChange(IPlayer previous)
+    {
+        // jika game sudah selesai, tidak perlu transisi
+        if (_game.GetStatus() != GameStatus.InProgress) return;
+        
+        IPlayer nextPlayer = _game.GetCurrentPlayer();
+        
+        // jika pemain sama (misal habis narik lalu bisa main lagi), tidak perlu transisi
+        if (nextPlayer == previous) return;
+        
+        // pemain berbeda -> tampilkan layar bersiap
+        Console.Clear();
+        Console.WriteLine("========================================");
+        Console.WriteLine($"   Giliran: {nextPlayer.Name}");
+        Console.WriteLine("========================================");
+        Console.WriteLine("\nPemain lain harap tidak melihat layar.");
+        Console.WriteLine("Tekan Enter saat sudah siap...");
         Console.ReadLine();
     }
 
