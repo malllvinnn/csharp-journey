@@ -55,13 +55,35 @@ public class ConsoleUI
         IPlayer current = _game.GetCurrentPlayer();
         Console.WriteLine($"Giliran: {current.Name}   Sisa pile: {_game.GetDrawPileCount()}");
     }
-
-    public void ShowMenu()
+    
+    // input player
+    public static List<string> AskPlayerNames()
     {
-        Console.WriteLine("============= GAME ACTION ==============");
-        Console.WriteLine("(1) Main domino");
-        Console.WriteLine("(2) Ambil kartu");
-        Console.Write("Pilih: ");
+        int playerCount;
+        while (true)
+        {
+            Console.Write("Jumlah player (2-8): ");
+            string? playerInput = Console.ReadLine();
+        
+            if (int.TryParse(playerInput, out playerCount) && playerCount >= 2 && playerCount <= 8)
+            {
+                // valid -> keluar loop
+                break;
+            }
+            
+            Console.WriteLine("Jumlah player harus antara 2 - 8");
+        }
+        
+        List<string> names = new List<string>();
+        
+        for (int i = 0; i < playerCount; i++)
+        {
+            Console.Write($"Nama Pemain {i + 1}: ");
+            string? name = Console.ReadLine();
+            names.Add(name ?? $"Player {i + 1}");
+        }
+
+        return names;
     }
     
     // satu giliran
@@ -207,5 +229,7 @@ public class ConsoleUI
         Console.WriteLine("Tekan Enter saat sudah siap...");
         Console.ReadLine();
     }
+    
+    
 
 }
