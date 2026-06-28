@@ -28,10 +28,29 @@ public class ConsoleUI
     {
         Console.WriteLine("========== BOARD ==========");
         IBoard board = _game.GetBoard();
+        List<IDomino> dominoes = board.BoardDominoes;
 
-        foreach (IDomino d in board.BoardDominoes)
+        if (dominoes.Count == 0)
         {
-            Console.Write($"[{d.LeftPips}|{d.RightPips}]");
+            Console.WriteLine("(papan kosong)");
+            Console.WriteLine($"Left Open: {board.LeftOpenEnd} | Right Open: {board.RightOpenEnd}");
+            return;
+        }
+
+        int connectingPip = board.LeftOpenEnd;
+        
+        foreach (IDomino domino in dominoes)
+        {
+            if (domino.LeftPips == connectingPip)
+            {
+                Console.Write($"[{domino.LeftPips}|{domino.RightPips}]");
+                connectingPip = domino.RightPips;
+            }
+            else
+            {
+                Console.Write($"[{domino.RightPips}|{domino.LeftPips}]");
+                connectingPip = domino.LeftPips;
+            }
         }
         Console.WriteLine();
         Console.WriteLine($"Left Open: {board.LeftOpenEnd} | Right Open: {board.RightOpenEnd}");
