@@ -1,131 +1,42 @@
 using DominoGame.Enums;
 using DominoGame.Interfaces;
+using Spectre.Console;
 
 namespace DominoGame.UI;
 
-public class ConsoleUI
+public class ConsoleUi
 {
     private GameLogic _game;
+    private bool _turnChanged = false;
 
-    public ConsoleUI(GameLogic game)
+    public ConsoleUi(GameLogic game)
     {
         _game = game;
+        
+        _game.TurnChanged += OnTurnChanged;
+        _game.GameEnded += OnGameEnded;
     }
     
-    // loop utama
+    // loop run utama
     public void Run()
     {
         while (_game.GetStatus() == GameStatus.InProgress)
         {
             PlayOneTurn();
         }
-        
-        ShowResult();
-    }
-    
-    // tampilan
-    public void ShowBoard()
-    {
-        Console.WriteLine("========== BOARD ==========");
-        IBoard board = _game.GetBoard();
-        List<IDomino> dominoes = board.BoardDominoes;
-
-        if (dominoes.Count == 0)
-        {
-            Console.WriteLine("(papan kosong)");
-            Console.WriteLine($"Left Open: {board.LeftOpenEnd} | Right Open: {board.RightOpenEnd}");
-            return;
-        }
-
-        int connectingPip = board.LeftOpenEnd;
-        
-        foreach (IDomino domino in dominoes)
-        {
-            int leftShow, rightShow;
-            
-            // menentukan orientasi placement
-
-            if (domino.LeftPips == connectingPip)
-            {
-                leftShow = domino.LeftPips;
-                rightShow = domino.RightPips;
-                connectingPip = domino.RightPips;
-            }
-            else
-            {
-                leftShow = domino.RightPips;
-                rightShow = domino.LeftPips;
-                connectingPip = domino.LeftPips;
-            }
-            
-            // print sekali dengan penandaan double dan ngga
-            string separator = domino.IsDouble ? "^" : "|";
-            Console.Write($"[{leftShow}{separator}{rightShow}]");
-        }
-        Console.WriteLine();
-        Console.WriteLine($"Left Open: {board.LeftOpenEnd} | Right Open: {board.RightOpenEnd}");
-    }
-
-    public void ShowPlayerHand(IPlayer player)
-    {
-        Console.WriteLine("============= HAND DOMINOES ==============");
-        Console.WriteLine($"Kartu {player.Name}:");
-
-        List<IDomino> hand = _game.GetPlayerHands(player);
-        for (int i = 0; i < hand.Count; i++)
-        {
-            Console.WriteLine($"  {i + 1}. [{hand[i].LeftPips}|{hand[i].RightPips}]");
-        }
-    }
-
-    public void ShowInfo()
-    {
-        Console.WriteLine("============= GAME INFO ==============");
-        IPlayer current = _game.GetCurrentPlayer();
-        Console.WriteLine($"Giliran: {current.Name}   Sisa pile: {_game.GetDrawPileCount()}");
-    }
-    
-    // input player
-    public static List<string> AskPlayerNames()
-    {
-        int playerCount;
-        while (true)
-        {
-            Console.Write("Jumlah player (2-8): ");
-            string? playerInput = Console.ReadLine();
-        
-            if (int.TryParse(playerInput, out playerCount) && playerCount >= 2 && playerCount <= 8)
-            {
-                // valid -> keluar loop
-                break;
-            }
-            
-            Console.WriteLine("Jumlah player harus antara 2 - 8");
-        }
-        
-        List<string> names = new List<string>();
-        
-        for (int i = 0; i < playerCount; i++)
-        {
-            Console.Write($"Nama Pemain {i + 1}: ");
-            string? name = Console.ReadLine();
-            names.Add(name ?? $"Player {i + 1}");
-        }
-
-        return names;
     }
     
     // satu giliran
     private void PlayOneTurn()
     {
         Console.Clear();
+        // reset flag event di setiap awal giliran
+        _turnChanged = false;
         
         IPlayer current = _game.GetCurrentPlayer();
 
-        Console.WriteLine();
         ShowBoard();
-        ShowPlayerHand(current);
-        ShowInfo();
+        ShowInfoPanel(current);
         
         // tidak bisa main → narik otomatis
         if (!_game.CanPlayerPlay(current))
@@ -162,6 +73,193 @@ public class ConsoleUI
         
         PauseBeforeNext();
         ShowTransitionIfPlayerChange(current);
+    }
+    
+    // SHOW BOARD
+    public void ShowBoard()
+    {
+       string boardContent = CreateBoardContent();
+
+       var panel = new Panel(boardContent)
+       {
+           Header = new PanelHeader("[yellow bold] BOARD [/]", Justify.Center),
+           Border = BoxBorder.Double,
+           Padding = new Padding(4, 3),
+       };
+
+       panel.Expand = true;
+       AnsiConsole.Write(panel);
+    }
+
+    private string CreateBoardContent()
+    {
+        IBoard board = _game.GetBoard();
+        List<IDomino> dominoes = board.BoardDominoes;
+
+        if (dominoes.Count == 0)
+        {
+            return "[grey](Table Empty)[/]\n\n" +
+                   $"Left Open: [cyan]{board.LeftOpenEnd}[/]    |    Right Open: [cyan]{board.RightOpenEnd}[/]";
+        }
+        
+        // susun kartu
+        int connectingPip = board.LeftOpenEnd;
+        string cards = "";
+
+        foreach (IDomino domino in dominoes)
+        {
+            int leftShow, rightShow;
+
+            if (domino.LeftPips == connectingPip)
+            {
+                leftShow = domino.LeftPips;
+                rightShow = domino.RightPips;
+                connectingPip = domino.RightPips;
+            }
+            else
+            {
+                leftShow = domino.RightPips;
+                rightShow = domino.LeftPips;
+                connectingPip = domino.LeftPips;
+            }
+
+            string separator = domino.IsDouble ? "^" : "|";
+            cards += $"[[{leftShow}{separator}{rightShow}]]";
+        }
+        
+        // untuk menggabungkan kartu + info ujung di bawahnya
+        return $"[white]{cards}[/]\n\n" +
+               $"Left Open: [cyan]{board.LeftOpenEnd}[/]  |  Right Open: [cyan]{board.RightOpenEnd}[/]";
+    }
+
+    // SHOW GAME INFO
+    public void ShowInfoPanel(IPlayer activePlayer)
+    {
+        // create dua panel kanan kiri
+        var playersPanel = CreatePlayersPanel(activePlayer);
+        var handPanel = CreateHandPanel(activePlayer);
+        var drawPilePanel = CreateDrawPilePanel();
+        
+        var playersDrawPileColumn = new Rows(playersPanel, drawPilePanel);
+        
+        // taruh bersebelahan
+        var columns = new Columns(playersDrawPileColumn, handPanel);
+        columns.Collapse();
+
+        var wrapper = new Panel(columns)
+        {
+            Header = new PanelHeader("[yellow bold] GAME INFO [/]", Justify.Center),
+            Border = BoxBorder.Double,
+            Padding = new Padding(2, 1, 2, 1)
+        };
+        
+        wrapper.Expand = true;
+        AnsiConsole.Write(wrapper);
+    }
+
+    // panel kiri list semua pemain
+    private Panel CreatePlayersPanel(IPlayer activePlayer)
+    {
+        var table = new Table();
+        table.Border = TableBorder.None;
+        table.AddColumn("Player's turn:");
+
+        foreach (IPlayer player in _game.GetPlayers())
+        {
+            int handCount = _game.GetPlayerHands(player).Count;
+
+            if (player == activePlayer)
+            {
+                table.AddRow($"[green bold]> {player.Name} ({handCount})[/]");
+            }
+            else
+            {
+                table.AddRow($"[grey]  {player.Name} ({handCount})[/]");
+            }
+        }
+
+        return new Panel(table)
+        {
+            Header = new PanelHeader("[blue] PLAYERS [/]", Justify.Left),
+            Border = BoxBorder.Square,
+            Expand = true
+        };
+    }
+    
+    // panel kanan list card pile pemain aktif
+    private Panel CreateHandPanel(IPlayer player)
+    {
+        var table = new Table();
+        table.Border = TableBorder.None;
+        table.AddColumn("[yellow]No[/]");
+        table.AddColumn("[yellow]Domino[/]");
+        
+        List<IDomino> hand = _game.GetPlayerHands(player);
+        for (int i = 0; i < hand.Count; i++)
+        {
+            string separator = hand[i].IsDouble ? "^" : "|";
+            string dominoText = $"[[{hand[i].LeftPips}{separator}{hand[i].RightPips}]]";
+            
+            // tandai double dengan warna
+            if (hand[i].IsDouble)
+            {
+                table.AddRow($"[cyan]{i + 1}[/]", $"[magenta]{dominoText}[/]");
+            }
+            else
+            {
+                table.AddRow($"{i + 1}", dominoText);
+            }
+        }
+
+        return new Panel(table)
+        {
+            Header = new PanelHeader($"[green] HAND PILE [/]", Justify.Left),
+            Border = BoxBorder.Square,
+        };
+    }
+
+    private Panel CreateDrawPilePanel()
+    {
+        int pileCount = _game.GetDrawPileCount();
+
+        var content = new Markup($"[cyan]{pileCount}[/] dominoes");
+        
+        return new Panel(content)
+        {
+            Header = new PanelHeader("[blue] REMAINING [/]", Justify.Left),
+            Border = BoxBorder.Square,
+            Expand = true
+        };
+    }
+    
+    // input player
+    public static List<string> AskPlayerNames()
+    {
+        int playerCount;
+        while (true)
+        {
+            Console.Write("Jumlah player (2-8): ");
+            string? playerInput = Console.ReadLine();
+        
+            if (int.TryParse(playerInput, out playerCount) && playerCount >= 2 && playerCount <= 8)
+            {
+                // valid -> keluar loop
+                break;
+            }
+            
+            Console.WriteLine("Jumlah player harus antara 2-8");
+        }
+        
+        List<string> names = new List<string>();
+        
+        for (int i = 0; i < playerCount; i++)
+        {
+            Console.Write($"Nama Pemain {i + 1}: ");
+            string? name = Console.ReadLine();
+            names.Add(name ?? $"Player {i + 1}");
+        }
+
+        return names;
     }
     
     // main domino (minta nomor + sisi, panggil PlayTurn)
@@ -213,24 +311,33 @@ public class ConsoleUI
     }
 
     // hasil akhir
-    private void ShowResult()
+    private void ShowGameOver()
     {
-        Console.WriteLine("\n========== GAME OVER ==========");
-
         IPlayer? winner = _game.GetWinner();
         WinCondition condition = _game.GetWinConditions();
+        
+        if (winner == null) return;
 
-        if (winner != null)
+        string message;
+
+        if (condition == WinCondition.EmptyHand)
         {
-            if (condition == WinCondition.EmptyHand)
-            {
-                Console.WriteLine($"{winner.Name} menang — semua kartu habis!");
-            }
-            else
-            {
-                Console.WriteLine($"Game blocked! {winner.Name} menang dengan pip paling sedikit.");
-            }
+            message = $"[green bold]{winner.Name}[/] menang — semua kartu habis!";
         }
+        else
+        {
+            message = $"Game blocked! [green bold]{winner.Name}[/] menang dengan pip paling sedikit.";
+        }
+
+        var panel = new Panel(message)
+        {
+            Header = new PanelHeader("[yellow bold] GAME OVER [/]", Justify.Center),
+            Border = BoxBorder.Double,
+            Padding = new Padding(4, 2),
+        };
+        panel.Expand = true;
+        
+        AnsiConsole.Write(panel);
     }
     
     private void PauseBeforeNext()
@@ -244,10 +351,10 @@ public class ConsoleUI
         // jika game sudah selesai, tidak perlu transisi
         if (_game.GetStatus() != GameStatus.InProgress) return;
         
-        IPlayer nextPlayer = _game.GetCurrentPlayer();
-        
         // jika pemain sama (misal habis narik lalu bisa main lagi), tidak perlu transisi
-        if (nextPlayer == previous) return;
+        if (!_turnChanged) return;
+        
+        IPlayer nextPlayer = _game.GetCurrentPlayer();
         
         // pemain berbeda -> tampilkan layar bersiap
         Console.Clear();
@@ -259,6 +366,15 @@ public class ConsoleUI
         Console.ReadLine();
     }
     
-    
+    // Event Handler / Delegate
+    private void OnTurnChanged(object? sender, EventArgs e)
+    {
+        _turnChanged = true;
+    }
+
+    private void OnGameEnded(object? sender, EventArgs e)
+    {
+        ShowGameOver();
+    }
 
 }
