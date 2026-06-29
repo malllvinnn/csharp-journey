@@ -1,13 +1,5 @@
-========== BOARD ==========
-   [2|2][2|5][5|6][6|3]
-   kiri: 2      kanan: 3
-===========================
-Giliran: Malfin      Pile: 45
-
-Kartu kamu:
-  1. [6|2]
-  2. [3|5]
-  3. [3|3]
-===========================
-(1) Main  (2) Ambil  (3) Lewati
-Pilih: _
+RenderScreen()         → susun semua panel jadi satu layar
+  ├─ BuildBoardPanel()       → Panel BOARD
+  ├─ BuildPlayersPanel()     → daftar pemain (aktif berwarna)
+  ├─ BuildHandPanel()        → kartu pemain aktif
+  └─ BuildInfoPanel()        → Game Info

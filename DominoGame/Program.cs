@@ -4,7 +4,7 @@ using DominoGame.Interfaces;
 using DominoGame.UI;
 
 // minta nama players
-List<string> names = ConsoleUI.AskPlayerNames();
+List<string> names = ConsoleUi.AskPlayerNames();
 
 // bikin players
 List<IPlayer> players = new List<IPlayer>();
@@ -30,6 +30,6 @@ GameLogic game = new GameLogic(players, drawPile);
 
 game.StartGame();
 
-ConsoleUI ui = new ConsoleUI(game);
+ConsoleUi ui = new ConsoleUi(game);
 
 ui.Run();
