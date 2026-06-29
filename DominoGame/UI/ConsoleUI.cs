@@ -318,23 +318,61 @@ public class ConsoleUi
         
         if (winner == null) return;
 
-        string message;
+        string winnerMessage;
 
         if (condition == WinCondition.EmptyHand)
         {
-            message = $"[green bold]{winner.Name}[/] menang — semua kartu habis!";
+            winnerMessage = $"[green bold]{winner.Name}[/] menang — semua kartu habis!";
         }
         else
         {
-            message = $"Game blocked! [green bold]{winner.Name}[/] menang dengan pip paling sedikit.";
+            winnerMessage = $"Game blocked! [green bold]{winner.Name}[/] menang dengan pip paling sedikit.";
         }
+        
+        // table sisa pip tiap pemain
+        var table = new Table();
+        table.Border = TableBorder.Rounded;
+        table.AddColumn("[yellow]Pemain[/]");
+        table.AddColumn("[yellow]Sisa Pip[/]");
+        table.AddColumn("[yellow]Sisa Kartu[/]");
 
-        var panel = new Panel(message)
+        foreach (IPlayer player in _game.GetPlayers())
+        {
+            int pips = _game.GetRemainingPips(player);
+            int cards = _game.GetPlayerHands(player).Count;
+            
+            // penandaan pemenang
+            if (player == winner)
+            {
+                table.AddRow(
+                    $"[green bold]{player.Name} (menang)[/]",
+                    $"[green]{pips}[/]",
+                    $"[green]{cards}[/]"
+                );
+            }
+            else
+            {
+                table.AddRow(
+                    $"[grey]{player.Name}[/]",
+                    $"[grey]{pips}[/]",
+                    $"[grey]{cards}[/]"
+                );
+            }
+        }
+        
+        var content = new Rows(
+            new Markup(winnerMessage),
+            new Text(""),
+            table
+        );
+
+        var panel = new Panel(content)
         {
             Header = new PanelHeader("[yellow bold] GAME OVER [/]", Justify.Center),
             Border = BoxBorder.Double,
             Padding = new Padding(4, 2),
         };
+        
         panel.Expand = true;
         
         AnsiConsole.Write(panel);
