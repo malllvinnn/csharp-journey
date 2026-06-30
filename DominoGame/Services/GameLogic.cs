@@ -167,7 +167,7 @@ public class GameLogic
 
     public List<IDomino> GetPlayerHands(IPlayer player)
     {
-        return _hands[player]; // sementara (tapi tergantung)
+        return _hands[player];
     }
 
     public int GetRemainingPips(IPlayer player)
@@ -211,7 +211,9 @@ public class GameLogic
 
     public int GetDrawPileCount()
     {
-        return _drawPile.Dominoes.Count; // sementara (tapi tergantung)
+        int drawPileCount = _drawPile.Dominoes.Count;
+        
+        return drawPileCount;
     }
     
     // Business Logic Setup (Private)
@@ -342,8 +344,11 @@ public class GameLogic
         // variable penampung untuk side yang relavan
         int openEnd = side == PlacementSide.Left ? _board.LeftOpenEnd : _board.RightOpenEnd;
         
-        //  return domino left pips atau kalau tidak return right pips
-        return domino.LeftPips == openEnd || domino.RightPips == openEnd;
+        // matching domino left pips atau right pips
+        bool isMatchingLeftAndRightOpenEnd = domino.LeftPips == openEnd || domino.RightPips == openEnd;
+        
+        // return
+        return isMatchingLeftAndRightOpenEnd;
     }
 
     private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation)
@@ -476,13 +481,18 @@ public class GameLogic
 
     private bool IsGameBlocked()
     {
-        // return true blocked jika skip lebih dari jumlah pemain
-        return _consecutiveSkips >= _players.Count;
+        // define variable blocked jika skip lebih dari jumlah pemain
+        bool isBlocked = _consecutiveSkips >= _players.Count;
+        
+        // return blocked
+        return isBlocked;
     }
 
     private bool IsDrawPileEmpty()
     {
-        return _drawPile.Dominoes.Count == 0;
+        bool isDrawPileEmpty = _drawPile.Dominoes.Count == 0;
+        
+        return isDrawPileEmpty;
     }
 
     private int CalculateRemainingPips(IPlayer player)

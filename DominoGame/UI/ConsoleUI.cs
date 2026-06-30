@@ -95,11 +95,14 @@ public class ConsoleUi
     {
         IBoard board = _game.GetBoard();
         List<IDomino> dominoes = board.BoardDominoes;
+        string result;
 
         if (dominoes.Count == 0)
         {
-            return "[grey](Table Empty)[/]\n\n" +
-                   $"Left Open: [cyan]{board.LeftOpenEnd}[/]    |    Right Open: [cyan]{board.RightOpenEnd}[/]";
+            result = "[grey](Table Empty)[/]\n\n" +
+                     $"Left Open: [cyan]{board.LeftOpenEnd}[/]    |    Right Open: [cyan]{board.RightOpenEnd}[/]";
+            
+            return result;
         }
         
         // susun kartu
@@ -128,8 +131,10 @@ public class ConsoleUi
         }
         
         // untuk menggabungkan kartu + info ujung di bawahnya
-        return $"[white]{cards}[/]\n\n" +
-               $"Left Open: [cyan]{board.LeftOpenEnd}[/]  |  Right Open: [cyan]{board.RightOpenEnd}[/]";
+        result = $"[white]{cards}[/]\n\n" +
+                 $"Left Open: [cyan]{board.LeftOpenEnd}[/]  |  Right Open: [cyan]{board.RightOpenEnd}[/]";
+
+        return result;
     }
 
     // SHOW GAME INFO
@@ -178,12 +183,14 @@ public class ConsoleUi
             }
         }
 
-        return new Panel(table)
+        Panel panel = new Panel(table)
         {
             Header = new PanelHeader("[blue] PLAYERS [/]", Justify.Left),
             Border = BoxBorder.Square,
             Expand = true
         };
+
+        return panel;
     }
     
     // panel kanan list card pile pemain aktif
@@ -211,11 +218,13 @@ public class ConsoleUi
             }
         }
 
-        return new Panel(table)
+        Panel panel = new Panel(table)
         {
             Header = new PanelHeader($"[green] HAND PILE [/]", Justify.Left),
             Border = BoxBorder.Square,
         };
+
+        return panel;
     }
 
     private Panel CreateDrawPilePanel()
@@ -223,13 +232,15 @@ public class ConsoleUi
         int pileCount = _game.GetDrawPileCount();
 
         var content = new Markup($"[cyan]{pileCount}[/] dominoes");
-        
-        return new Panel(content)
+
+        Panel panel = new Panel(content)
         {
             Header = new PanelHeader("[blue] REMAINING [/]", Justify.Left),
             Border = BoxBorder.Square,
             Expand = true
         };
+
+        return panel;
     }
     
     // input player
