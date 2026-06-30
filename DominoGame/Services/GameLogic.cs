@@ -30,12 +30,13 @@ public class GameLogic
     // Lifecycle (public)
     public void StartGame()
     {
-        // validasi jumlah pemain
+        // jika pemain tidak valid, tidak memulai game
         if (_players.Count < 2 || _players.Count > 8)
         {
-            throw new ArgumentException("Players minimal 2 dan maksimal 8", nameof(_players));
+            _gameStatus = GameStatus.NotStarted;
+            return;
         }
-
+        
         // kocok pile
         ShuffleDrawPile();
 
@@ -82,12 +83,12 @@ public class GameLogic
         PlacementOrientation orientation
     )
     {
-        // validasi penempatan (validate placement)
+        // jika tidak valid, tidak melakukan apa apa
         if (!ValidatePlacement(domino, side))
         {
-            // jika tidak valid kembalikan sesuatu
-            throw new ArgumentException("Invalid placement", nameof(domino));
+            return TurnAction.PlayDomino;
         }
+        
         
         // jika valid taruh domino ke papan
         PlaceDomino(domino, side, orientation);
@@ -155,7 +156,7 @@ public class GameLogic
 
     public IPlayer GetCurrentPlayer()
     {
-        return _players[_currentPlayerIndex]; // sementara (tapi tergantung)
+        return _players[_currentPlayerIndex];
     }
     
     // Get Info Player and Hand
@@ -201,6 +202,11 @@ public class GameLogic
 
         // return ends pips
         return openEndPips;
+    }
+
+    public bool CanPlaceDomino(IDomino domino, PlacementSide side)
+    {
+        return ValidatePlacement(domino, side);
     }
 
     public int GetDrawPileCount()

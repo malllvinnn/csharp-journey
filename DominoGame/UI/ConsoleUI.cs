@@ -299,15 +299,14 @@ public class ConsoleUi
             return;
         }
 
-        // panggil PlayTurn, tangkap kalau gagal
-        try
+        // validasi penempatan sebelum PlayTurn
+        if (!_game.CanPlaceDomino(domino, side))
         {
-            _game.PlayTurn(player, domino, side, PlacementOrientation.Horizontal);
+            Console.WriteLine("Domino tidak cocok dengan side. Coba lagi.");
+            return;
         }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Gagal: {ex.Message}");
-        }
+        
+        _game.PlayTurn(player, domino, side, PlacementOrientation.Horizontal);
     }
 
     // hasil akhir
