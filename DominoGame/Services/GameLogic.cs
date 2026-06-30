@@ -8,7 +8,7 @@ public class GameLogic
 {
     private readonly Dictionary<IPlayer, List<IDomino>> _hands;
     private List<IPlayer> _players;
-    private IBoard? _board;
+    private IBoard _board;
     private IPlayer? _winner;
     private readonly IDrawPile _drawPile;
     private int _currentPlayerIndex;
@@ -25,6 +25,7 @@ public class GameLogic
         _players = players;
         _drawPile = drawPile;
         _hands = new Dictionary<IPlayer, List<IDomino>>();
+        _board = new Board(new List<IDomino>());
     }
     
     // Lifecycle (public)
@@ -53,7 +54,7 @@ public class GameLogic
         DetermineStartingPlayer();
 
         // buat papan kosong
-        _board = new Board(new List<IDomino>());
+        // _board = new Board(new List<IDomino>());
 
         // set status berjalan
         _gameStatus = GameStatus.InProgress;
@@ -186,13 +187,13 @@ public class GameLogic
     // Get Info Board
     public IBoard GetBoard()
     {
-        return _board!;
+        return _board;
     }
 
     public List<int> GetOpenEndPips()
     {
         // jika papan kosong, kemablikan kosong
-        if (_board!.BoardDominoes.Count == 0)
+        if (_board.BoardDominoes.Count == 0)
         {
             List<int> emptyBoardDomino = new List<int>();
             
@@ -351,7 +352,7 @@ public class GameLogic
     private bool ValidatePlacement(IDomino domino, PlacementSide side)
     {
         // langsung kembalikan true jika papan dari awal kosong
-        if (_board!.BoardDominoes.Count == 0)
+        if (_board.BoardDominoes.Count == 0)
         {
             return true;
         }
@@ -366,10 +367,13 @@ public class GameLogic
         return isMatchingLeftAndRightOpenEnd;
     }
 
-    private void PlaceDomino(IDomino domino, PlacementSide side, PlacementOrientation orientation)
+    private void PlaceDomino(
+        IDomino domino, 
+        PlacementSide side, 
+        PlacementOrientation orientation)
     {
         // jika papan kosong, langsung saja
-        if (_board!.BoardDominoes.Count == 0)
+        if (_board.BoardDominoes.Count == 0)
         {
             _board.BoardDominoes.Add(domino);
             _board.LeftOpenEnd = domino.LeftPips;
