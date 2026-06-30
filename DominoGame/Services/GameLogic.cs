@@ -124,6 +124,7 @@ public class GameLogic
             // pemain dapat domino yang bisa dimainkan
             return;
         }
+        
         // tetap ngga bisa main (pile habis) -> SKIP
         _consecutiveSkips++;
 
@@ -191,7 +192,12 @@ public class GameLogic
     public List<int> GetOpenEndPips()
     {
         // jika papan kosong, kemablikan kosong
-        if (_board!.BoardDominoes.Count == 0) return new List<int>();
+        if (_board!.BoardDominoes.Count == 0)
+        {
+            List<int> emptyBoardDomino = new List<int>();
+            
+            return emptyBoardDomino;
+        }
         
         // buat list endsPips
         List<int> openEndPips = new List<int>();
@@ -247,7 +253,10 @@ public class GameLogic
                 IDomino? domino = DrawFromPile();
                 
                 // tambahkan ke hand
-                if (domino != null) AddDominoToHand(player, domino);
+                if (domino != null)
+                {
+                    AddDominoToHand(player, domino);
+                }
             }
         }
     }
@@ -265,7 +274,10 @@ public class GameLogic
             IDomino? playerDouble = GetHighestDouble(_players[i]);
             
             // jika playerDOuble null, SKIP
-            if (playerDouble == null) continue;
+            if (playerDouble == null)
+            {
+                continue;
+            }
 
             // jika punya highest overall belum ada (null) atau player double lebih tinggi maka update
             if (highestOverall == null || playerDouble.LeftPips > highestOverall.LeftPips)
@@ -339,7 +351,10 @@ public class GameLogic
     private bool ValidatePlacement(IDomino domino, PlacementSide side)
     {
         // langsung kembalikan true jika papan dari awal kosong
-        if (_board!.BoardDominoes.Count == 0) return true;
+        if (_board!.BoardDominoes.Count == 0)
+        {
+            return true;
+        }
 
         // variable penampung untuk side yang relavan
         int openEnd = side == PlacementSide.Left ? _board.LeftOpenEnd : _board.RightOpenEnd;
@@ -413,9 +428,12 @@ public class GameLogic
         // check apakah ada kartu domino yang bisa ditaruh
         foreach (IDomino domino in _hands[player])
         {
-            if (ValidatePlacement(domino, PlacementSide.Left) ||
-                ValidatePlacement(domino, PlacementSide.Right)) return true;
+            if (ValidatePlacement(domino, PlacementSide.Left) || ValidatePlacement(domino, PlacementSide.Right))
+            {
+                return true;
+            }
         }
+        
         return false;
     }
     
@@ -462,7 +480,11 @@ public class GameLogic
         {
             // tarik 1 domino, masukan ke tangan
             IDomino? domino = DrawFromPile();
-            if (domino != null) AddDominoToHand(player, domino);
+            
+            if (domino != null)
+            {
+                AddDominoToHand(player, domino);
+            }
         }
     }
     
@@ -473,7 +495,10 @@ public class GameLogic
         foreach (IPlayer player in _players)
         {
             // jika tangan pemain kosong, makan return true (selesai)
-            if (_hands[player].Count == 0) return true;
+            if (_hands[player].Count == 0)
+            {
+                return true;
+            }
         }
         
         return false;
@@ -522,7 +547,7 @@ public class GameLogic
                 _winCondition = WinCondition.EmptyHand;
                 
                 return player;
-            };
+            }
         }
         
         // kartu tangan tidak ada yang habis, adu pips paling sedikit

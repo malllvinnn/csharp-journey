@@ -325,8 +325,11 @@ public class ConsoleUi
     {
         IPlayer? winner = _game.GetWinner();
         WinCondition condition = _game.GetWinConditions();
-        
-        if (winner == null) return;
+
+        if (winner == null)
+        {
+            return;
+        }
 
         string winnerMessage;
 
@@ -397,10 +400,16 @@ public class ConsoleUi
     private void ShowTransitionIfPlayerChange(IPlayer previous)
     {
         // jika game sudah selesai, tidak perlu transisi
-        if (_game.GetStatus() != GameStatus.InProgress) return;
+        if (_game.GetStatus() != GameStatus.InProgress)
+        {
+            return;
+        }
         
         // jika pemain sama (misal habis narik lalu bisa main lagi), tidak perlu transisi
-        if (!_turnChanged) return;
+        if (!_turnChanged)
+        {
+            return;
+        }
         
         IPlayer nextPlayer = _game.GetCurrentPlayer();
         
