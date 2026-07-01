@@ -24,12 +24,11 @@ for (int left = 0; left <= 12; left++)
 }
 
 // bikin drawPile dari domino
-DrawPile drawPile = new DrawPile(dominoes);
+IDrawPile drawPile = new DrawPile(dominoes);
+IBoard board = new Board(new List<IDomino>());
 
-GameLogic game = new GameLogic(players, drawPile);
-
-game.StartGame();
-
+GameLogic game = new GameLogic(players, drawPile, board);
 ConsoleUi ui = new ConsoleUi(game);
 
+game.StartGame();
 ui.Run();

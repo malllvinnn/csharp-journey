@@ -20,12 +20,12 @@ public class GameLogic
     public event EventHandler? TurnChanged;
     public event EventHandler? GameEnded;
 
-    public GameLogic(List<IPlayer> players, IDrawPile drawPile)
+    public GameLogic(List<IPlayer> players, IDrawPile drawPile, IBoard board)
     {
         _players = players;
         _drawPile = drawPile;
+        _board = board;
         _hands = new Dictionary<IPlayer, List<IDomino>>();
-        _board = new Board(new List<IDomino>());
     }
 
     // Lifecycle (public)
