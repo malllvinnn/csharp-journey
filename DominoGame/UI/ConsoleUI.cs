@@ -43,23 +43,22 @@ public class ConsoleUi
         {
             int handCountBefore = _game.GetPlayerHands(current).Count;
 
-            Console.WriteLine($"\n\u26a0 {current.Name} tidak punya kartu yang bisa dimainkan..");
-            Console.WriteLine("Menarik kartu dari pile...");
+            AnsiConsole.MarkupLine($"\n[yellow]⚠ {current.Name} tidak punya kartu yang bisa dimainkan.[/]");
+            AnsiConsole.MarkupLine("[grey]Menarik kartu dari pile...[/]");
 
             _game.DrawCard(current);
 
             int handCountAfter = _game.GetPlayerHands(current).Count;
-
             // jumlah kartu yang ditarik = after - before
             int drawnCount = handCountAfter - handCountBefore;
 
             if (_game.CanPlayerPlay(current))
             {
-                Console.WriteLine($"Menarik {drawnCount} kartu. Sekarang ada kartu yang bisa dimainkan!");
+                AnsiConsole.MarkupLine($"[green]Menarik {drawnCount} kartu. Sekarang ada kartu yang bisa dimainkan![/]");
             }
             else
             {
-                Console.WriteLine("Pile habis dan tetap tidak bisa main. Giliran dilewati.");
+                AnsiConsole.MarkupLine("[red]Pile habis dan tetap tidak bisa main. Giliran dilewati.[/]");
             }
 
             PauseBeforeNext();
@@ -69,8 +68,8 @@ public class ConsoleUi
         }
 
         // bisa main -> langsung pilih domino
-        Console.WriteLine("\n============= GAME ACTION ==============");
-        Console.WriteLine("Mainkan domino kamu:");
+        AnsiConsole.Write(new Rule("[yellow]GAME ACTION[/]").Centered());
+        AnsiConsole.MarkupLine("[cyan]Mainkan domino kamu.[/]");
         HandlePlayDomino(current);
 
         PauseBeforeNext();
@@ -86,7 +85,7 @@ public class ConsoleUi
         {
             Header = new PanelHeader("[yellow bold] BOARD [/]", Justify.Center),
             Border = BoxBorder.Double,
-            Padding = new Padding(4, 3),
+            Padding = new Padding(4, 5, 4, 3),
         };
 
         panel.Expand = true;
@@ -248,28 +247,42 @@ public class ConsoleUi
     // input player
     public static List<string> AskPlayerNames()
     {
-        int playerCount;
-        while (true)
+        // title game domino
+        var figlet = new FigletText("DOMINO GAME")
         {
-            Console.Write("Jumlah player (2-8): ");
-            string? playerInput = Console.ReadLine();
-
-            if (int.TryParse(playerInput, out playerCount) && playerCount >= 2 && playerCount <= 8)
+            Color = Color.Red,
+        };
+        AnsiConsole.Write(figlet);
+        AnsiConsole.WriteLine();
+        
+        // minta jumlah player dengan validasi input
+        int playerCount = AnsiConsole.Prompt(
+             new TextPrompt<int>("[green]Jumlah player[/] (2-8):")
+            .PromptStyle("cyan")
+            .ValidationErrorMessage("[red]Jumlah harus antara 2-8[/]")
+            .Validate(count =>
             {
-                // valid -> keluar loop
-                break;
-            }
+                if (count < 2 || count > 8)
+                {
+                    return ValidationResult.Error();
+                }
+                return ValidationResult.Success();
+            })
+        );
 
-            Console.WriteLine("Jumlah player harus antara 2-8");
-        }
-
+        // minta nama player
         List<string> names = new List<string>();
 
         for (int i = 0; i < playerCount; i++)
         {
-            Console.Write($"Nama Pemain {i + 1}: ");
-            string? name = Console.ReadLine();
-            names.Add(name ?? $"Player {i + 1}");
+            string name = AnsiConsole.Prompt(
+                new TextPrompt<string>($"[green]Nama player {i + 1}[/]:")
+                .PromptStyle("cyan")
+                .AllowEmpty()
+            );
+
+            // jika kosong, kasih nama default
+            names.Add(string.IsNullOrWhiteSpace(name) ? $"Anonymous {i + 1}" : name);
         }
 
         return names;
@@ -279,47 +292,39 @@ public class ConsoleUi
     private void HandlePlayDomino(IPlayer player)
     {
         List<IDomino> hand = _game.GetPlayerHands(player);
+        string separator;
 
-        // minta nomor domino
-        Console.Write("Pilih nomor domino: ");
-        string? numInput = Console.ReadLine();
-        bool convertedNum = int.TryParse(numInput, out int number);
+        // pilih nomor domino
+        IDomino domino = AnsiConsole.Prompt(
+            new SelectionPrompt<IDomino>()
+                .Title("[cyan]Pilih domino:[/]")
+                .UseConverter((isDomino) =>
+                {
+                    int index = hand.IndexOf(isDomino) + 1;
+                    return $"Nomor {index}";
+                })
+                .AddChoices(hand)
+        );
+        
+        separator = domino.IsDouble ? "^" : "|";
+        string dominoInfo = $"[[{domino.LeftPips}{separator}{domino.RightPips}]]";
 
-        if (!convertedNum || number < 1 || number > hand.Count)
+        // pilih side
+        PlacementSide placementSide = AnsiConsole.Prompt(
+            new SelectionPrompt<PlacementSide>()
+                .Title($"Domino terpilih: [yellow]{dominoInfo}[/]\n[cyan]Taruh di sisi:[/]")
+                .UseConverter((side) => side == PlacementSide.Left ? "Left (L)" : "Right (R)")
+                .AddChoices(PlacementSide.Left, PlacementSide.Right)
+        );
+
+        // validasi placement
+        if (!_game.CanPlaceDomino(domino, placementSide))
         {
-            Console.WriteLine("Nomor tidak valid.");
+            AnsiConsole.MarkupLine("[red]Domino tidak cocok dengan side. Coba lagi.[/]");
             return;
         }
 
-        IDomino domino = hand[number - 1];   // -1 karena user mulai dari 1, index mulai 0
-
-        // minta sisi
-        Console.Write("Taruh di sisi (L/R): ");
-        string? sideInput = Console.ReadLine();
-
-        PlacementSide side;
-        if (sideInput?.ToUpper() == "L")
-        {
-            side = PlacementSide.Left;
-        }
-        else if (sideInput?.ToUpper() == "R")
-        {
-            side = PlacementSide.Right;
-        }
-        else
-        {
-            Console.WriteLine("Sisi tidak valid (ketik L atau R).");
-            return;
-        }
-
-        // validasi penempatan sebelum PlayTurn
-        if (!_game.CanPlaceDomino(domino, side))
-        {
-            Console.WriteLine("Domino tidak cocok dengan side. Coba lagi.");
-            return;
-        }
-
-        _game.PlayTurn(player, domino, side, PlacementOrientation.Horizontal);
+        _game.PlayTurn(player, domino, placementSide, PlacementOrientation.Horizontal);
     }
 
     // hasil akhir
@@ -390,6 +395,7 @@ public class ConsoleUi
 
         panel.Expand = true;
 
+        Console.Clear();
         AnsiConsole.Write(panel);
     }
 
@@ -416,12 +422,24 @@ public class ConsoleUi
         IPlayer nextPlayer = _game.GetCurrentPlayer();
 
         // pemain berbeda -> tampilkan layar bersiap
+        var panel = new Panel(
+            new Rows(
+                new Markup($"[green bold]Giliran: {Markup.Escape(nextPlayer.Name)}[/]"),
+                new Text(""),
+                new Markup("[grey]Pemain lain harap tidak melihat layar.[/]"),
+                new Markup("[cyan]Tekan Enter saat sudah siap...[/]")
+            )
+        )
+        {
+            Header = new PanelHeader("[yellow bold] GILIRAN BERIKUTNYA [/]", Justify.Center),
+            Border = BoxBorder.Double,
+            Padding = new Padding(4, 2),
+        };
+
+        panel.Expand = true;
+        
         Console.Clear();
-        Console.WriteLine("========================================");
-        Console.WriteLine($"   Giliran: {nextPlayer.Name}");
-        Console.WriteLine("========================================");
-        Console.WriteLine("\nPemain lain harap tidak melihat layar.");
-        Console.WriteLine("Tekan Enter saat sudah siap...");
+        AnsiConsole.Write(panel);
         Console.ReadLine();
     }
 
