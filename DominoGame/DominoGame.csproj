@@ -11,4 +11,8 @@
       <PackageReference Include="Spectre.Console" Version="0.57.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Docs\Images\" />
+    </ItemGroup>
+
 </Project>
