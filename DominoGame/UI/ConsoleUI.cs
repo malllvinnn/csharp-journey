@@ -12,11 +12,11 @@ public class ConsoleUi
     public ConsoleUi(GameLogic game)
     {
         _game = game;
-        
+
         _game.TurnChanged += OnTurnChanged;
         _game.GameEnded += OnGameEnded;
     }
-    
+
     // loop run utama
     public void Run()
     {
@@ -25,41 +25,43 @@ public class ConsoleUi
             PlayOneTurn();
         }
     }
-    
+
     // satu giliran
     private void PlayOneTurn()
     {
         Console.Clear();
         // reset flag event di setiap awal giliran
         _turnChanged = false;
-        
+
         IPlayer current = _game.GetCurrentPlayer();
 
         ShowBoard();
         ShowInfoPanel(current);
-        
+
         // tidak bisa main → narik otomatis
         if (!_game.CanPlayerPlay(current))
         {
-            int before = _game.GetPlayerHands(current).Count;
-            
+            int handCountBefore = _game.GetPlayerHands(current).Count;
+
             Console.WriteLine($"\n\u26a0 {current.Name} tidak punya kartu yang bisa dimainkan..");
             Console.WriteLine("Menarik kartu dari pile...");
-            
+
             _game.DrawCard(current);
-            
-            int afterCount = _game.GetPlayerHands(current).Count;
-            int drawPileCount = afterCount - before;
+
+            int handCountAfter = _game.GetPlayerHands(current).Count;
+
+            // jumlah kartu yang ditarik = after - before
+            int drawnCount = handCountAfter - handCountBefore;
 
             if (_game.CanPlayerPlay(current))
             {
-                Console.WriteLine($"Menarik {drawPileCount} kartu. Sekarang ada kartu yang bisa dimainkan!");
+                Console.WriteLine($"Menarik {drawnCount} kartu. Sekarang ada kartu yang bisa dimainkan!");
             }
             else
             {
                 Console.WriteLine("Pile habis dan tetap tidak bisa main. Giliran dilewati.");
             }
-            
+
             PauseBeforeNext();
             // layar privasi kalau giliran pindah
             ShowTransitionIfPlayerChange(current);
@@ -70,41 +72,41 @@ public class ConsoleUi
         Console.WriteLine("\n============= GAME ACTION ==============");
         Console.WriteLine("Mainkan domino kamu:");
         HandlePlayDomino(current);
-        
+
         PauseBeforeNext();
         ShowTransitionIfPlayerChange(current);
     }
-    
+
     // SHOW BOARD
     public void ShowBoard()
     {
-       string boardContent = CreateBoardContent();
+        string boardContent = CreateBoardContent();
 
-       var panel = new Panel(boardContent)
-       {
-           Header = new PanelHeader("[yellow bold] BOARD [/]", Justify.Center),
-           Border = BoxBorder.Double,
-           Padding = new Padding(4, 3),
-       };
+        var panel = new Panel(boardContent)
+        {
+            Header = new PanelHeader("[yellow bold] BOARD [/]", Justify.Center),
+            Border = BoxBorder.Double,
+            Padding = new Padding(4, 3),
+        };
 
-       panel.Expand = true;
-       AnsiConsole.Write(panel);
+        panel.Expand = true;
+        AnsiConsole.Write(panel);
     }
 
     private string CreateBoardContent()
     {
         IBoard board = _game.GetBoard();
         List<IDomino> dominoes = board.BoardDominoes;
-        string result;
+        string boardText;
 
         if (dominoes.Count == 0)
         {
-            result = "[grey](Table Empty)[/]\n\n" +
+            boardText = "[grey](Table Empty)[/]\n\n" +
                      $"Left Open: [cyan]{board.LeftOpenEnd}[/]    |    Right Open: [cyan]{board.RightOpenEnd}[/]";
-            
-            return result;
+
+            return boardText;
         }
-        
+
         // susun kartu
         int connectingPip = board.LeftOpenEnd;
         string cards = "";
@@ -129,12 +131,12 @@ public class ConsoleUi
             string separator = domino.IsDouble ? "^" : "|";
             cards += $"[[{leftShow}{separator}{rightShow}]]";
         }
-        
+
         // untuk menggabungkan kartu + info ujung di bawahnya
-        result = $"[white]{cards}[/]\n\n" +
+        boardText = $"[white]{cards}[/]\n\n" +
                  $"Left Open: [cyan]{board.LeftOpenEnd}[/]  |  Right Open: [cyan]{board.RightOpenEnd}[/]";
 
-        return result;
+        return boardText;
     }
 
     // SHOW GAME INFO
@@ -144,9 +146,9 @@ public class ConsoleUi
         var playersPanel = CreatePlayersPanel(activePlayer);
         var handPanel = CreateHandPanel(activePlayer);
         var drawPilePanel = CreateDrawPilePanel();
-        
+
         var playersDrawPileColumn = new Rows(playersPanel, drawPilePanel);
-        
+
         // taruh bersebelahan
         var columns = new Columns(playersDrawPileColumn, handPanel);
         columns.Collapse();
@@ -157,7 +159,7 @@ public class ConsoleUi
             Border = BoxBorder.Double,
             Padding = new Padding(2, 1, 2, 1)
         };
-        
+
         wrapper.Expand = true;
         AnsiConsole.Write(wrapper);
     }
@@ -192,7 +194,7 @@ public class ConsoleUi
 
         return panel;
     }
-    
+
     // panel kanan list card pile pemain aktif
     private Panel CreateHandPanel(IPlayer player)
     {
@@ -200,13 +202,13 @@ public class ConsoleUi
         table.Border = TableBorder.None;
         table.AddColumn("[yellow]No[/]");
         table.AddColumn("[yellow]Domino[/]");
-        
+
         List<IDomino> hand = _game.GetPlayerHands(player);
         for (int i = 0; i < hand.Count; i++)
         {
             string separator = hand[i].IsDouble ? "^" : "|";
             string dominoText = $"[[{hand[i].LeftPips}{separator}{hand[i].RightPips}]]";
-            
+
             // tandai double dengan warna
             if (hand[i].IsDouble)
             {
@@ -242,7 +244,7 @@ public class ConsoleUi
 
         return panel;
     }
-    
+
     // input player
     public static List<string> AskPlayerNames()
     {
@@ -251,18 +253,18 @@ public class ConsoleUi
         {
             Console.Write("Jumlah player (2-8): ");
             string? playerInput = Console.ReadLine();
-        
+
             if (int.TryParse(playerInput, out playerCount) && playerCount >= 2 && playerCount <= 8)
             {
                 // valid -> keluar loop
                 break;
             }
-            
+
             Console.WriteLine("Jumlah player harus antara 2-8");
         }
-        
+
         List<string> names = new List<string>();
-        
+
         for (int i = 0; i < playerCount; i++)
         {
             Console.Write($"Nama Pemain {i + 1}: ");
@@ -272,7 +274,7 @@ public class ConsoleUi
 
         return names;
     }
-    
+
     // main domino (minta nomor + sisi, panggil PlayTurn)
     private void HandlePlayDomino(IPlayer player)
     {
@@ -316,7 +318,7 @@ public class ConsoleUi
             Console.WriteLine("Domino tidak cocok dengan side. Coba lagi.");
             return;
         }
-        
+
         _game.PlayTurn(player, domino, side, PlacementOrientation.Horizontal);
     }
 
@@ -341,7 +343,7 @@ public class ConsoleUi
         {
             winnerMessage = $"Game blocked! [green bold]{winner.Name}[/] menang dengan pip paling sedikit.";
         }
-        
+
         // table sisa pip tiap pemain
         var table = new Table();
         table.Border = TableBorder.Rounded;
@@ -353,7 +355,7 @@ public class ConsoleUi
         {
             int pips = _game.GetRemainingPips(player);
             int cards = _game.GetPlayerHands(player).Count;
-            
+
             // penandaan pemenang
             if (player == winner)
             {
@@ -372,7 +374,7 @@ public class ConsoleUi
                 );
             }
         }
-        
+
         var content = new Rows(
             new Markup(winnerMessage),
             new Text(""),
@@ -385,12 +387,12 @@ public class ConsoleUi
             Border = BoxBorder.Double,
             Padding = new Padding(4, 2),
         };
-        
+
         panel.Expand = true;
-        
+
         AnsiConsole.Write(panel);
     }
-    
+
     private void PauseBeforeNext()
     {
         Console.WriteLine("\nTekan Enter untuk lanjut...");
@@ -404,15 +406,15 @@ public class ConsoleUi
         {
             return;
         }
-        
+
         // jika pemain sama (misal habis narik lalu bisa main lagi), tidak perlu transisi
         if (!_turnChanged)
         {
             return;
         }
-        
+
         IPlayer nextPlayer = _game.GetCurrentPlayer();
-        
+
         // pemain berbeda -> tampilkan layar bersiap
         Console.Clear();
         Console.WriteLine("========================================");
@@ -422,7 +424,7 @@ public class ConsoleUi
         Console.WriteLine("Tekan Enter saat sudah siap...");
         Console.ReadLine();
     }
-    
+
     // Event Handler / Delegate
     private void OnTurnChanged(object? sender, EventArgs e)
     {

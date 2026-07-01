@@ -15,7 +15,7 @@ public class GameLogic
     private int _consecutiveSkips;
     private GameStatus _gameStatus;
     private WinCondition _winCondition;
-    
+
     // events
     public event EventHandler? TurnChanged;
     public event EventHandler? GameEnded;
@@ -27,7 +27,7 @@ public class GameLogic
         _hands = new Dictionary<IPlayer, List<IDomino>>();
         _board = new Board(new List<IDomino>());
     }
-    
+
     // Lifecycle (public)
     public void StartGame()
     {
@@ -37,7 +37,7 @@ public class GameLogic
             _gameStatus = GameStatus.NotStarted;
             return;
         }
-        
+
         // kocok pile
         ShuffleDrawPile();
 
@@ -75,7 +75,7 @@ public class GameLogic
     {
         return _winCondition;
     }
-    
+
     // Actions (public)
     public TurnAction PlayTurn(
         IPlayer player,
@@ -89,11 +89,11 @@ public class GameLogic
         {
             return TurnAction.PlayDomino;
         }
-        
-        
+
+
         // jika valid taruh domino ke papan
         PlaceDomino(domino, side, orientation);
-        
+
         // hapus domino dari tangan pemain
         RemoveDominoFromHand(player, domino);
 
@@ -106,7 +106,7 @@ public class GameLogic
             EndGame();
             return TurnAction.PlayDomino;
         }
-        
+
         // pindah giliran pemain berikutnya
         AdvanceTurn();
 
@@ -118,14 +118,14 @@ public class GameLogic
     {
         // narik sampai bisa main atau pile habis
         DrawUntilPlayable(player);
-        
+
         // check hasil narik, apakah sekarang bisa narik?
         if (HasPlayableDomino(player))
         {
             // pemain dapat domino yang bisa dimainkan
             return;
         }
-        
+
         // tetap ngga bisa main (pile habis) -> SKIP
         _consecutiveSkips++;
 
@@ -136,7 +136,7 @@ public class GameLogic
             EndGame();
             return;
         }
-        
+
         // belum BLOCKED, pindah giliran pemain (current player terlewatkan)
         AdvanceTurn();
     }
@@ -145,11 +145,11 @@ public class GameLogic
     {
         // pindah pemain berikutnya
         _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
-        
+
         // notifikasi UI giliran berubah
         TurnChanged?.Invoke(this, EventArgs.Empty);
     }
-    
+
     // Get Info Game and Turn
     public GameStatus GetStatus()
     {
@@ -160,7 +160,7 @@ public class GameLogic
     {
         return _players[_currentPlayerIndex];
     }
-    
+
     // Get Info Player and Hand
     public List<IPlayer> GetPlayers()
     {
@@ -183,7 +183,7 @@ public class GameLogic
         // return play able domino
         return HasPlayableDomino(player);
     }
-    
+
     // Get Info Board
     public IBoard GetBoard()
     {
@@ -195,14 +195,14 @@ public class GameLogic
         // jika papan kosong, kemablikan kosong
         if (_board.BoardDominoes.Count == 0)
         {
-            List<int> emptyBoardDomino = new List<int>();
-            
-            return emptyBoardDomino;
+            List<int> emptyPips = new List<int>();
+
+            return emptyPips;
         }
-        
+
         // buat list endsPips
         List<int> openEndPips = new List<int>();
-        
+
         // tambahkan left dan right pips end
         openEndPips.Add(_board.LeftOpenEnd);
         openEndPips.Add(_board.RightOpenEnd);
@@ -219,20 +219,20 @@ public class GameLogic
     public int GetDrawPileCount()
     {
         int drawPileCount = _drawPile.Dominoes.Count;
-        
+
         return drawPileCount;
     }
-    
+
     // Business Logic Setup (Private)
     private void ShuffleDrawPile()
     {
         List<IDomino> dominoes = _drawPile.Dominoes;
-        Random rnd = new Random();
-        
+        Random random = new Random();
+
         for (int i = dominoes.Count - 1; i > 0; i--)
         {
-            int j = rnd.Next(i + 1);
-            (dominoes[i], dominoes[j]) = (dominoes[j], dominoes[i]);
+            int randomIndex = random.Next(i + 1);
+            (dominoes[i], dominoes[randomIndex]) = (dominoes[randomIndex], dominoes[i]);
         }
     }
 
@@ -252,7 +252,7 @@ public class GameLogic
             {
                 // ambil 1 domino
                 IDomino? domino = DrawFromPile();
-                
+
                 // tambahkan ke hand
                 if (domino != null)
                 {
@@ -273,7 +273,7 @@ public class GameLogic
         {
             // untuk tiap pemain, ambil double yg tertinggi
             IDomino? playerDouble = GetHighestDouble(_players[i]);
-            
+
             // jika playerDOuble null, SKIP
             if (playerDouble == null)
             {
@@ -287,7 +287,7 @@ public class GameLogic
                 startingPlayerIndex = i;
             }
         }
-        
+
         _currentPlayerIndex = startingPlayerIndex;
     }
 
@@ -309,7 +309,7 @@ public class GameLogic
                 }
             }
         }
-        
+
         // return highest
         return highestDomino;
     }
@@ -340,14 +340,14 @@ public class GameLogic
             // kembalikan kartu dari tangan pemain ke pile
             _drawPile.Dominoes.AddRange(_hands[player]);
         }
-        
+
         // kocok ulang 
         ShuffleDrawPile();
-        
+
         // bagi ulang
         DealInitialHands();
     }
-    
+
     // Business Logic Turn and Placement (Private)
     private bool ValidatePlacement(IDomino domino, PlacementSide side)
     {
@@ -359,17 +359,17 @@ public class GameLogic
 
         // variable penampung untuk side yang relavan
         int openEnd = side == PlacementSide.Left ? _board.LeftOpenEnd : _board.RightOpenEnd;
-        
+
         // matching domino left pips atau right pips
         bool isMatchingLeftAndRightOpenEnd = domino.LeftPips == openEnd || domino.RightPips == openEnd;
-        
+
         // return
         return isMatchingLeftAndRightOpenEnd;
     }
 
     private void PlaceDomino(
-        IDomino domino, 
-        PlacementSide side, 
+        IDomino domino,
+        PlacementSide side,
         PlacementOrientation orientation)
     {
         // jika papan kosong, langsung saja
@@ -378,7 +378,7 @@ public class GameLogic
             _board.BoardDominoes.Add(domino);
             _board.LeftOpenEnd = domino.LeftPips;
             _board.RightOpenEnd = domino.RightPips;
-            
+
             return;
         }
 
@@ -386,7 +386,7 @@ public class GameLogic
         if (side == PlacementSide.Left)
         {
             int openEnd = _board.LeftOpenEnd;
-            
+
             // tentukan ujung baru (sisi yang TIDAK menempel)
             int newEnd;
             if (domino.RightPips == openEnd)
@@ -399,7 +399,7 @@ public class GameLogic
                 // sisi kiri menempel, kanan jadi ujung baru
                 newEnd = domino.RightPips;
             }
-            
+
             _board.LeftOpenEnd = newEnd;
             // taruh di awal (kiri)
             _board.BoardDominoes.Insert(0, domino);
@@ -409,7 +409,7 @@ public class GameLogic
         {
             int openEnd = _board.RightOpenEnd;
             int newEnd;
-            
+
             if (domino.LeftPips == openEnd)
             {
                 // sisi kiri menempel, kanan jadi ujung baru
@@ -420,7 +420,7 @@ public class GameLogic
                 // sisi kanan menempel, kiri jadi ujung baru
                 newEnd = domino.LeftPips;
             }
-            
+
             _board.RightOpenEnd = newEnd;
             // taruh di akhir (kanan)
             _board.BoardDominoes.Add(domino);
@@ -437,10 +437,10 @@ public class GameLogic
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     // Business Logic Pile and Hand (Private)
     private IDomino? DrawFromPile()
     {
@@ -484,14 +484,14 @@ public class GameLogic
         {
             // tarik 1 domino, masukan ke tangan
             IDomino? domino = DrawFromPile();
-            
+
             if (domino != null)
             {
                 AddDominoToHand(player, domino);
             }
         }
     }
-    
+
     // Business Logic Game End and Resolution (Private)
     private bool CheckGameOver()
     {
@@ -504,7 +504,7 @@ public class GameLogic
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -512,7 +512,7 @@ public class GameLogic
     {
         // define variable blocked jika skip lebih dari jumlah pemain
         bool isBlocked = _consecutiveSkips >= _players.Count;
-        
+
         // return blocked
         return isBlocked;
     }
@@ -520,7 +520,7 @@ public class GameLogic
     private bool IsDrawPileEmpty()
     {
         bool isDrawPileEmpty = _drawPile.Dominoes.Count == 0;
-        
+
         return isDrawPileEmpty;
     }
 
@@ -549,11 +549,11 @@ public class GameLogic
             {
                 // set win kartu habis
                 _winCondition = WinCondition.EmptyHand;
-                
+
                 return player;
             }
         }
-        
+
         // kartu tangan tidak ada yang habis, adu pips paling sedikit
         _winCondition = WinCondition.FewestPips;
         // anggap pemain pertama untuk di kalkulasi
@@ -584,9 +584,9 @@ public class GameLogic
 
         // tentulam pemenang
         _winner = DetermineWinner();
-        
+
         // beritahu UI Game berakhir
         GameEnded?.Invoke(this, EventArgs.Empty);
     }
-    
+
 }
